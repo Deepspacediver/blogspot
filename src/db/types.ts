@@ -31,10 +31,14 @@ export type User = {
 type Underscore = "_"
 
 type WithoutFirstUnderscore<T extends string> = T extends `_${infer Rest}` ? Rest : T
+type SingleSnakeCaseString = "_underscore"
 
-type SnakeCaseString = "_underscore"
+type UnderscorelessString = WithoutFirstUnderscore<SingleSnakeCaseString>
 
-type UnderscorelessString = WithoutFirstUnderscore<SnakeCaseString>
+// Part 2
+type MultipleUnderscoresString = `multiple_underscores_test`
+type WithoutEveryUnderscore<T extends string> = T extends `${infer U}_${infer P}` ? WithoutEveryUnderscore<`${U}${Capitalize<P>}`> : T
 
+type StringWithoutAllUnderscoreCapitalized = WithoutEveryUnderscore<MultipleUnderscoresString>
 
 

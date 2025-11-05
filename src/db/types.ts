@@ -13,7 +13,7 @@ export type User = {
   // todo subject to change
   picture?: string,
   role: UserRole,
-}
+};
 
 
 // TODO
@@ -26,22 +26,22 @@ export type User = {
 // transform nested object properties from snake to camelcase ✅
 // add case _id_another_name -> idAnotherName
 
-type Underscore = "_"
-type CamelCaseString = `_${string}`
+type Underscore = "_";
+type CamelCaseString = `_${string}`;
 
-type WithoutFirstUnderscore<T extends string> = T extends `_${infer Rest}` ? Rest : T
-type SingleSnakeCaseString = "_underscore"
+type WithoutFirstUnderscore<T extends string> = T extends `_${infer Rest}` ? Rest : T;
+type SingleSnakeCaseString = "_underscore";
 
-type UnderscorelessString = WithoutFirstUnderscore<SingleSnakeCaseString>
+type UnderscorelessString = WithoutFirstUnderscore<SingleSnakeCaseString>;
 
 // Part 2
-type CamelCasePKey<T extends string> = T extends `_${infer U}` ? Lowercase<U>  : T extends `_${infer U}_${infer P}` ? `${U}${Capitalize<CamelCasePKey<P>>}`: T extends `${infer U}_${infer P}` ? CamelCasePKey<`${U}${Capitalize<P>}`> :  T
+type CamelCasePKey<T extends string> = T extends `_${infer U}` ? Lowercase<U> : T extends `_${infer U}_${infer P}` ? `${U}${Capitalize<CamelCasePKey<P>>}` : T extends `${infer U}_${infer P}` ? CamelCasePKey<`${U}${Capitalize<P>}`> : T;
 
-type FirstAsLowerCaseId = CamelCasePKey<"_id_private_key">
-type NoFirstUnderscoleAsLowerCaseId = CamelCasePKey<"id_private_key">
-type SimplePrivateId = CamelCasePKey<"_id">
+type FirstAsLowerCaseId = CamelCasePKey<"_id_private_key">;
+type NoFirstUnderscoleAsLowerCaseId = CamelCasePKey<"id_private_key">;
+type SimplePrivateId = CamelCasePKey<"_id">;
 
 type ObjectWithCamelCaseProperties<T extends Record<string, unknown>> = {
-  [U in keyof T as CamelCasePKey<U extends string & keyof T ? U : never>] : T[U] extends Record<string, unknown> ? ObjectWithCamelCaseProperties<T[U]> : T[U]
+  [U in keyof T as CamelCasePKey<U extends string & keyof T ? U : never>]: T[U] extends Record<string, unknown> ? ObjectWithCamelCaseProperties<T[U]> : T[U]
 }
 

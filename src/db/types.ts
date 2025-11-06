@@ -14,6 +14,36 @@ export type User = {
   role: UserRole;
 };
 
+export type Comment = {
+  id: string;
+  content: string;
+  user_id: string;
+  post_id: string;
+  created_at: Date;
+  updated_at?: Date;
+};
+
+export type Post = {
+  id: string;
+  title: string;
+  // Content would probably be html that is stringified
+  content: string;
+  author_id: string;
+  created_at: Date;
+  updated_at?: Date;
+  // default false
+  is_published: boolean;
+};
+
+export type File = {
+  id: string;
+  // unique constaint
+  name: string;
+  post_id: string;
+  created_at: Date;
+  size: number;
+};
+
 type SnakeToCamelCase<T extends string> = T extends `_${infer U}`
   ? SnakeToCamelCase<Lowercase<U>>
   : T extends `_${infer U}_${infer P}`

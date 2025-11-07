@@ -10,7 +10,7 @@ export type User = {
   password: string;
   created_at: Date;
   updated_at?: Date;
-  picture?: string;
+  picture_url?: string;
   role: UserRole;
 };
 

@@ -4,11 +4,13 @@ const JWT_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_JWT_SECRET!);
 const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
 
-type JWTCookie = {
+type JWTPayload = {
   userId: string;
 };
 
-export const encryptJWT = async (jwtPayload: JWTCookie) => {
+type JWT = JWTPayload & { expiresAt: Date };
+
+export const encryptJWT = async (jwtPayload: JWTPayload) => {
   const authCookie = await new jose.SignJWT(jwtPayload)
     .setProtectedHeader({ alg: SIGN_ALG })
     .setIssuedAt()
@@ -20,7 +22,11 @@ export const encryptJWT = async (jwtPayload: JWTCookie) => {
 };
 
 export const decryptJWT = async (cookie: string) => {
-  return await jose.jwtVerify(cookie, JWT_SIGNING_KEY, {
-    issuer: ISSUER,
-  });
+  try {
+    return await jose.jwtVerify<JWT>(cookie, JWT_SIGNING_KEY, {
+      issuer: ISSUER,
+    });
+  } catch (err) {
+    console.error(err);
+  }
 };

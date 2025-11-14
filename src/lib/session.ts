@@ -1,6 +1,7 @@
 import * as jose from "jose";
 
 const JWT_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_JWT_SECRET!);
+const JWT_REFRESH_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_REFRESH_SIGNING_SECRET!);
 const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
 export const EXPIRATION_15_MINUTES = "15m";
@@ -14,16 +15,21 @@ type JWT = JWTPayload & { exp: Date };
 
 type EncryptJWTProps = {
   payload: JWTPayload;
+  signingSecret: Uint8Array<ArrayBufferLike>;
   expiration?: string;
 };
 
-export const encryptJWT = async ({ payload, expiration = EXPIRATION_15_MINUTES }: EncryptJWTProps) => {
+export const encryptJWT = async ({
+  payload,
+  signingSecret = JWT_SIGNING_KEY,
+  expiration = EXPIRATION_15_MINUTES,
+}: EncryptJWTProps) => {
   const authCookie = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: SIGN_ALG })
     .setIssuedAt()
     .setIssuer(ISSUER)
     .setExpirationTime(expiration)
-    .sign(JWT_SIGNING_KEY);
+    .sign(signingSecret);
 
   return authCookie;
 };

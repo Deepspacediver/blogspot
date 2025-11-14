@@ -57,3 +57,11 @@ export type DeepCamelCaseKeys<T extends Record<string, unknown>> = {
     ? DeepCamelCaseKeys<T[U]>
     : T[U];
 };
+
+export type UserCK = DeepCamelCaseKeys<User>;
+
+export type CommentCK = DeepCamelCaseKeys<Comment>;
+
+export type PostCK = DeepCamelCaseKeys<Post>;
+
+export type FileCK = DeepCamelCaseKeys<File>;

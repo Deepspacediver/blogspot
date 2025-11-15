@@ -1,7 +1,7 @@
 import * as jose from "jose";
 
-const JWT_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_JWT_SECRET!);
-const JWT_REFRESH_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_REFRESH_SIGNING_SECRET!);
+export const JWT_ACCESS_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_JWT_SECRET!);
+export const JWT_REFRESH_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_REFRESH_SIGNING_SECRET!);
 const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
 export const EXPIRATION_15_MINUTES = "15m";
@@ -15,13 +15,13 @@ type JWT = JWTPayload & { exp: Date };
 
 type EncryptJWTProps = {
   payload: JWTPayload;
-  signingSecret: Uint8Array<ArrayBufferLike>;
+  signingSecret?: Uint8Array<ArrayBufferLike>;
   expiration?: string;
 };
 
 export const encryptJWT = async ({
   payload,
-  signingSecret = JWT_SIGNING_KEY,
+  signingSecret = JWT_ACCESS_SIGNING_KEY,
   expiration = EXPIRATION_15_MINUTES,
 }: EncryptJWTProps) => {
   const authCookie = await new jose.SignJWT(payload)
@@ -34,9 +34,10 @@ export const encryptJWT = async ({
   return authCookie;
 };
 
+// todo improve
 export const decryptJWT = async (cookie: string) => {
   try {
-    return await jose.jwtVerify<JWT>(cookie, JWT_SIGNING_KEY, {
+    return await jose.jwtVerify<JWT>(cookie, JWT_ACCESS_SIGNING_KEY, {
       issuer: ISSUER,
     });
   } catch (err) {

@@ -3,6 +3,8 @@
 import * as userQueries from "@/db/queries/user.queries";
 import * as passwordUtils from "@/lib/credentials/hash";
 import * as authModels from "@/models/auth.models";
+import * as JWTHelpers from "@/lib/session";
+import { cookies } from "next/headers";
 
 type SignUpProps = {
   email: string;
@@ -11,7 +13,7 @@ type SignUpProps = {
 
 export const signUp = async ({ email, password }: SignUpProps) => {
   const hashedPassword = await passwordUtils.hash(password);
-  await userQueries.createUser({ email, password: hashedPassword });
+  return await userQueries.createUser({ email, password: hashedPassword });
 };
 
 type HandleSignUpProps = SignUpProps & {
@@ -36,8 +38,36 @@ export const handleSignUp = async ({ email, password, confirmPassword }: HandleS
     throw new Error();
   }
 
-  await signUp({
+  const user = await signUp({
     password,
     email,
+  });
+
+  if (!user) {
+    throw new Error();
+  }
+
+  const { id: userId } = user;
+  const payload = { userId };
+  const [accessToken, refreshToken] = await Promise.all([
+    JWTHelpers.encryptJWT({
+      payload,
+    }),
+    JWTHelpers.encryptJWT({
+      payload,
+      signingSecret: JWTHelpers.JWT_REFRESH_SIGNING_KEY,
+      expiration: JWTHelpers.EXPIRATION_7_DAYS,
+    }),
+  ]);
+
+  const cookieStore = await cookies();
+  cookieStore.set({
+    name: "access",
+    value: accessToken,
+  });
+  cookieStore.set({
+    name: "refresh",
+    value: refreshToken,
+    httpOnly: true,
   });
 };

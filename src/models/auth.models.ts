@@ -4,3 +4,16 @@ import z from "zod";
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 export const passwordSchema = z.string().regex(PASSWORD_REGEX);
+
+export const singUpSchema = z
+  .object({
+    email: z.email(),
+    password: passwordSchema,
+    confirmPassword: passwordSchema,
+  })
+  .refine(
+    (data) => {
+      return data.password === data.confirmPassword;
+    },
+    { error: "Passwords do not match" },
+  );

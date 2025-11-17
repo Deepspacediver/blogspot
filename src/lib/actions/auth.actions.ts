@@ -6,30 +6,33 @@ import * as authModels from "@/models/auth.models";
 import * as JWTHelpers from "@/lib/session";
 import { cookies } from "next/headers";
 import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
+import z from "zod";
+import { ErrorFields, NullablePartial } from "@/db/types";
 
-type SignUpProps = {
+type SignUpFormFields = {
   email: string;
   password: string;
+  confirmPassword: string;
 };
+
+type SignUpProps = Omit<SignUpFormFields, "confirmPassword">;
 
 export const signUp = async ({ email, password }: SignUpProps) => {
   const hashedPassword = await passwordUtils.hash(password);
   return await userQueries.createUser({ email, password: hashedPassword });
 };
 
-type HandleSignUpProps = SignUpProps & {
-  confirmPassword: string;
+export type SignUpState = {
+  message: string;
+  fieldErrors: ErrorFields<SignUpFormFields>;
+  prevFormState: NullablePartial<SignUpFormFields>;
 };
 
-export const handleSignUp = async (
-  prevState: unknown,
-  data: FormData,
-  // { email, password, confirmPassword }: HandleSignUpProps
-) => {
+export const handleSignUp = async (prevState: SignUpState, data: FormData): Promise<SignUpState> => {
   const formData = {
-    email: data.get("email"),
-    password: data.get("password"),
-    confirmPassword: data.get("confirmPassword"),
+    email: data.get("email") as string | null,
+    password: data.get("password") as string | null,
+    confirmPassword: data.get("confirmPassword") as string | null,
   };
 
   const parsedData = authModels.singUpSchema.safeParse(formData);
@@ -37,26 +40,32 @@ export const handleSignUp = async (
   if (!parsedData.success) {
     return {
       message: "Incorrect account details",
-      details: parsedData.error.flatten.toString(),
+      fieldErrors: z.flattenError(parsedData.error).fieldErrors,
+      prevFormState: formData,
     };
   }
 
   const { email, password } = parsedData.data;
-  const userExists = await userQueries.findUserByEmail(email);
-  if (userExists) {
-    return { message: "User with a given email already exists.", details: "" };
-  }
 
   try {
+    const userExists = await userQueries.findUserByEmail(email);
+
+    if (userExists) {
+      return {
+        message: "User with a given email already exists.",
+        fieldErrors: {},
+        prevFormState: formData,
+      };
+    }
+
     const user = await signUp({
       password,
       email,
     });
 
-    console.log({ user });
     const { id: userId, role } = user;
     const payload = { userId, role };
-    // Currently only for app
+
     const appAccessToken = await JWTHelpers.encryptJWT({
       payload,
       signingSecret: JWTHelpers.JWT_REFRESH_SIGNING_KEY,
@@ -69,14 +78,17 @@ export const handleSignUp = async (
       value: appAccessToken,
       httpOnly: true,
     });
+
     return {
       message: "",
-      details: "",
+      fieldErrors: {},
+      prevFormState: formData,
     };
-  } catch (e) {
+  } catch {
     return {
       message: "Failed to create an account.",
-      details: JSON.stringify(e),
+      fieldErrors: {},
+      prevFormState: formData,
     };
   }
 };

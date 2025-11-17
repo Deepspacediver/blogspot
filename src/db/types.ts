@@ -65,3 +65,7 @@ export type CommentCK = DeepCamelCaseKeys<Comment>;
 export type PostCK = DeepCamelCaseKeys<Post>;
 
 export type FileCK = DeepCamelCaseKeys<File>;
+
+export type NullablePartial<T> = Partial<{
+  [R in keyof T]: T[R] | null;
+}>;

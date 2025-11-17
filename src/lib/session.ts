@@ -1,17 +1,20 @@
+import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
+import { UserRole } from "@/db/types";
+import { CustomError } from "@/errors/custom-error";
 import * as jose from "jose";
 
 export const JWT_ACCESS_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_JWT_SECRET!);
 export const JWT_REFRESH_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_REFRESH_SIGNING_SECRET!);
 const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
-export const EXPIRATION_15_MINUTES = "15m";
-export const EXPIRATION_7_DAYS = "7d";
 
-type JWTPayload = {
+export type JWTPayload = {
   userId: string;
+  role: UserRole;
 };
 
-type JWT = JWTPayload & { exp: Date };
+// exp should always be present since setExpirationTime is invoked every time
+export type JWT = JWTPayload & { exp: number };
 
 type EncryptJWTProps = {
   payload: JWTPayload;
@@ -40,8 +43,8 @@ export const decryptJWT = async (cookie: string) => {
     return await jose.jwtVerify<JWT>(cookie, JWT_ACCESS_SIGNING_KEY, {
       issuer: ISSUER,
     });
-  } catch (err) {
-    // TODO add error handling, probably redirect
-    console.error(err);
+  } catch {
+    // todo
+    throw new CustomError("Incorrect JWT signature", 400);
   }
 };

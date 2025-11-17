@@ -4,9 +4,12 @@ import { UserCK } from "../types";
 export const findUserByEmail = async (email: string) => {
   try {
     //todo remove password fetching ?
-    const user = await psqlPool.query<UserCK>(`
-      SELECT * FROM users WHERE email = ${email};
-    `);
+    const user = await psqlPool.query<UserCK>(
+      `
+      SELECT * FROM users WHERE email = $1;
+    `,
+      [email],
+    );
 
     return user?.rows?.[0];
   } catch (e) {
@@ -20,16 +23,14 @@ type CreateUserProps = {
   password: string;
 };
 export const createUser = async ({ email, password }: CreateUserProps) => {
-  try {
-    const user = await psqlPool.query<UserCK>(`INSERT INTO users (
+  const user = await psqlPool.query<UserCK>(
+    `INSERT INTO users (
       email, password
     ) VALUES ( 
-      ${email}, ${password}
-    );`);
+      $1, $2
+    );`,
+    [email, password],
+  );
 
-    return user?.rows?.[0];
-  } catch (e) {
-    // todo
-    console.error(e);
-  }
+  return user?.rows?.[0];
 };

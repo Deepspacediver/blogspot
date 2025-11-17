@@ -69,3 +69,7 @@ export type FileCK = DeepCamelCaseKeys<File>;
 export type NullablePartial<T> = Partial<{
   [R in keyof T]: T[R] | null;
 }>;
+
+export type ErrorFields<T extends Record<PropertyKey, unknown>> = NullablePartial<{
+  [R in keyof T]: string[];
+}>;

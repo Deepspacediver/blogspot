@@ -26,18 +26,15 @@ export type Comment = {
 export type Post = {
   id: string;
   title: string;
-  // Content would probably be html that is stringified
   content: string;
   author_id: string;
   created_at: Date;
   updated_at?: Date;
-  // default false
   is_published: boolean;
 };
 
 export type File = {
   id: string;
-  // unique constaint
   name: string;
   post_id: string;
   created_at: Date;

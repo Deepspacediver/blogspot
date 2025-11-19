@@ -28,7 +28,14 @@ export type SignUpState = {
   prevFormState: NullablePartial<SignUpFormFields>;
 };
 
-export const handleSignUp = async (prevState: SignUpState, data: FormData): Promise<SignUpState> => {
+export const handleSignUp = async (prevState: SignUpState, data?: FormData): Promise<SignUpState> => {
+  if (!data) {
+    return {
+      message: "Missing form data",
+      fieldErrors: {},
+      prevFormState: prevState.prevFormState,
+    };
+  }
   const formData = {
     email: data.get("email") as string | null,
     password: data.get("password") as string | null,
@@ -78,7 +85,6 @@ export const handleSignUp = async (prevState: SignUpState, data: FormData): Prom
       value: appAccessToken,
       httpOnly: true,
     });
-
     return {
       message: "",
       fieldErrors: {},

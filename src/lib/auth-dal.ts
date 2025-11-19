@@ -29,37 +29,39 @@ export const validateAccessToken = async () => {
 
 export const validateAppToken = async () => {
   try {
-  } catch {}
-  const cookieStore = await cookies();
-  const sessionAccessToken = cookieStore.get("session")?.value;
-  if (!sessionAccessToken) {
-    redirect("/auth/sign-in");
-  }
+    const cookieStore = await cookies();
+    const sessionAccessToken = cookieStore.get("session")?.value;
+    if (!sessionAccessToken) {
+      redirect("/auth/sign-in");
+    }
 
-  const decryptedToken = await decryptJWT(sessionAccessToken);
-  if (!decryptedToken) {
-    redirect("/auth/sign-in");
-  }
-  const isJWTExpired = isExpired(decryptedToken?.payload?.exp);
-  if (!isJWTExpired) {
+    const decryptedToken = await decryptJWT(sessionAccessToken);
+    if (!decryptedToken) {
+      redirect("/auth/sign-in");
+    }
+    const isJWTExpired = isExpired(decryptedToken?.payload?.exp);
+    if (!isJWTExpired) {
+      return decryptedToken.payload;
+    }
+    const newSessionToken = await encryptJWT({
+      payload: {
+        userId: decryptedToken.payload.userId,
+        role: decryptedToken.payload.role,
+      },
+      signingSecret: JWT_REFRESH_SIGNING_KEY,
+      expiration: EXPIRATION_15_MINUTES,
+    });
+
+    cookieStore.set({
+      name: "session",
+      value: newSessionToken,
+      httpOnly: true,
+    });
+
     return decryptedToken.payload;
+  } catch {
+    redirect("/auth/sign-in");
   }
-  const newSessionToken = await encryptJWT({
-    payload: {
-      userId: decryptedToken.payload.userId,
-      role: decryptedToken.payload.role,
-    },
-    signingSecret: JWT_REFRESH_SIGNING_KEY,
-    expiration: EXPIRATION_15_MINUTES,
-  });
-
-  cookieStore.set({
-    name: "session",
-    value: newSessionToken,
-    httpOnly: true,
-  });
-
-  return decryptedToken.payload;
 };
 
 type ActionProps<T> = {

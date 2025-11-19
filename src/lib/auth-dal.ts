@@ -28,6 +28,8 @@ export const validateAccessToken = async () => {
 };
 
 export const validateAppToken = async () => {
+  try {
+  } catch {}
   const cookieStore = await cookies();
   const sessionAccessToken = cookieStore.get("session")?.value;
   if (!sessionAccessToken) {
@@ -60,9 +62,15 @@ export const validateAppToken = async () => {
   return decryptedToken.payload;
 };
 
-export const protectedAction = <T>(action: (prevState: T, payload: JWT, formData?: FormData) => Promise<T>) => {
-  return async function (prevState: T, formData: FormData) {
+type ActionProps<T> = {
+  prevState: T;
+  payload: JWT;
+  formData?: FormData;
+};
+
+export const protectedAction = <T>(action: ({ prevState, formData, payload }: ActionProps<T>) => Promise<T>) => {
+  return async function (prevState: T, formData?: FormData) {
     const payload = await validateAppToken();
-    return await action(prevState, payload, formData);
+    return await action({ prevState, payload, formData });
   };
 };

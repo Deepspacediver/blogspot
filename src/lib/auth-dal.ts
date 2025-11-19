@@ -59,3 +59,10 @@ export const validateAppToken = async () => {
 
   return decryptedToken.payload;
 };
+
+export const protectedAction = <T>(action: (prevState: T, payload: JWT, formData?: FormData) => Promise<T>) => {
+  return async function (prevState: T, formData: FormData) {
+    const payload = await validateAppToken();
+    return await action(prevState, payload, formData);
+  };
+};

@@ -2,6 +2,7 @@ import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
 import { UserRole } from "@/db/types";
 import { CustomError } from "@/errors/custom-error";
 import * as jose from "jose";
+import { validateAppToken } from "./auth-dal";
 
 export const JWT_ACCESS_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_JWT_SECRET!);
 export const JWT_REFRESH_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_REFRESH_SIGNING_SECRET!);
@@ -47,4 +48,17 @@ export const decryptJWT = async (cookie: string) => {
     // todo
     throw new CustomError("Incorrect JWT signature", 400);
   }
+};
+
+type ActionProps<T> = {
+  prevState: T;
+  payload: JWT;
+  formData?: FormData;
+};
+
+export const protectedAction = <T>(action: ({ prevState, formData, payload }: ActionProps<T>) => Promise<T>) => {
+  return async function (prevState: T, formData?: FormData) {
+    const payload = await validateAppToken();
+    return await action({ prevState, payload, formData });
+  };
 };

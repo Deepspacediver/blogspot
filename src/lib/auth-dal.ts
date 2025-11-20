@@ -1,4 +1,6 @@
-import { decryptJWT, encryptJWT, JWT, JWT_REFRESH_SIGNING_KEY, JWTPayload } from "./session";
+"use server";
+
+import { decryptJWT, encryptJWT, JWT_REFRESH_SIGNING_KEY } from "./session";
 import { cookies } from "next/headers";
 import { CustomError } from "@/errors/custom-error";
 import { redirect } from "next/navigation";
@@ -20,7 +22,7 @@ export const validateAccessToken = async () => {
   if (!jwtPayload) {
     throw new CustomError("Missing access token.", 401);
   }
-  //todo use datefns
+  // todo use datefns
   const isJWTExpired = isExpired(jwtPayload.payload.exp);
   if (isJWTExpired) {
     throw new CustomError("Access token is expired.", 401);
@@ -60,19 +62,7 @@ export const validateAppToken = async () => {
 
     return decryptedToken.payload;
   } catch {
+    cookieStore.delete("session");
     redirect("/auth/sign-in");
   }
-};
-
-type ActionProps<T> = {
-  prevState: T;
-  payload: JWT;
-  formData?: FormData;
-};
-
-export const protectedAction = <T>(action: ({ prevState, formData, payload }: ActionProps<T>) => Promise<T>) => {
-  return async function (prevState: T, formData?: FormData) {
-    const payload = await validateAppToken();
-    return await action({ prevState, payload, formData });
-  };
 };

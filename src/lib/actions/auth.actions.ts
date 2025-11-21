@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
 import z from "zod";
 import { ErrorFields, NullablePartial } from "@/db/types";
+import { redirect } from "next/navigation";
 
 type SignUpFormFields = {
   email: string;
@@ -27,7 +28,7 @@ export type SignUpState = {
   fieldErrors: ErrorFields<SignUpFormFields>;
   prevFormState: NullablePartial<SignUpFormFields>;
 };
-
+// TODO check if user is already logged in
 export const handleSignUp = async (prevState: SignUpState, data?: FormData): Promise<SignUpState> => {
   if (!data) {
     return {
@@ -85,11 +86,6 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
       value: appAccessToken,
       httpOnly: true,
     });
-    return {
-      message: "",
-      fieldErrors: {},
-      prevFormState: formData,
-    };
   } catch {
     return {
       message: "Failed to create an account.",
@@ -97,4 +93,5 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
       prevFormState: formData,
     };
   }
+  redirect("/");
 };

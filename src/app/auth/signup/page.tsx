@@ -2,17 +2,12 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { handleSignUp, SignUpState } from "@/lib/actions/auth.actions";
+import { defaultSignupState } from "@/constants/form-states";
+import { handleSignUp } from "@/lib/actions/auth.actions";
 import React, { useActionState } from "react";
 
-const defaultSingupState = {
-  message: "",
-  fieldErrors: {},
-  prevFormState: { email: "", password: "", confirmPassword: "" },
-} satisfies SignUpState;
-
 export default function SignUp() {
-  const [errorState, signUpAction] = useActionState(handleSignUp, defaultSingupState);
+  const [errorState, signUpAction] = useActionState(handleSignUp, defaultSignupState);
   const prevFormState = errorState.prevFormState;
   return (
     <div>

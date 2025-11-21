@@ -30,8 +30,8 @@ export const validateAccessToken = async () => {
 };
 
 export const validateAppToken = async () => {
+  const cookieStore = await cookies();
   try {
-    const cookieStore = await cookies();
     const sessionAccessToken = cookieStore.get("session")?.value;
     if (!sessionAccessToken) {
       redirect("/auth/sign-in");

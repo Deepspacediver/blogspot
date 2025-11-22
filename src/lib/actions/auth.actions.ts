@@ -7,7 +7,7 @@ import * as JWTHelpers from "@/lib/session";
 import { cookies } from "next/headers";
 import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
 import z from "zod";
-import { ErrorFields, NullablePartial } from "@/db/types";
+import { ActionState } from "@/db/types";
 import { redirect } from "next/navigation";
 
 type SignUpFormFields = {
@@ -23,11 +23,7 @@ export const signUp = async ({ email, password }: SignUpProps) => {
   return await userQueries.createUser({ email, password: hashedPassword });
 };
 
-export type SignUpState = {
-  message: string;
-  fieldErrors: ErrorFields<SignUpFormFields>;
-  prevFormState: NullablePartial<SignUpFormFields>;
-};
+export type SignUpState = ActionState<SignUpFormFields>;
 
 export const handleSignUp = async (prevState: SignUpState, data?: FormData): Promise<SignUpState> => {
   const cookieStore = await cookies();

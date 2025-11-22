@@ -70,3 +70,11 @@ export type NullablePartial<T> = Partial<{
 export type ErrorFields<T extends Record<PropertyKey, unknown>> = NullablePartial<{
   [R in keyof T]: string[];
 }>;
+
+// TODO FormState should be more extensive
+export type FormState = Record<string, string | number>;
+export type ActionState<T extends FormState> = {
+  message: string;
+  fieldErrors: ErrorFields<T>;
+  prevFormState: NullablePartial<T>;
+};

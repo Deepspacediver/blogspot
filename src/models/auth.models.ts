@@ -17,3 +17,8 @@ export const singUpSchema = z
     },
     { error: "Passwords do not match" },
   );
+
+export const signInSchema = z.object({
+  email: z.email(),
+  password: z.string().min(1),
+});

@@ -103,7 +103,7 @@ type SignInFields = {
   password: string;
 };
 
-type SignInState = ActionState<SignInFields>;
+export type SignInState = ActionState<SignInFields>;
 
 export const handleSignIn = async (prevState: SignInState, data: FormData): Promise<SignInState> => {
   // Duplication

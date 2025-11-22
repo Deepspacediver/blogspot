@@ -28,8 +28,14 @@ export type SignUpState = {
   fieldErrors: ErrorFields<SignUpFormFields>;
   prevFormState: NullablePartial<SignUpFormFields>;
 };
-// TODO check if user is already logged in
+
 export const handleSignUp = async (prevState: SignUpState, data?: FormData): Promise<SignUpState> => {
+  const cookieStore = await cookies();
+  const isSessionCookieSet = cookieStore.get("session");
+  if (!!isSessionCookieSet) {
+    redirect("/");
+  }
+
   if (!data) {
     return {
       message: "Missing form data",
@@ -80,7 +86,6 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
       expiration: EXPIRATION_15_MINUTES,
     });
 
-    const cookieStore = await cookies();
     cookieStore.set({
       name: "session",
       value: appAccessToken,

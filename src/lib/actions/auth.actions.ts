@@ -9,7 +9,8 @@ import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
 import z from "zod";
 import { ActionState } from "@/db/types";
 import { redirect } from "next/navigation";
-
+import { signInSchema } from "@/models/auth.models";
+import bcrypt from "bcryptjs";
 type SignUpFormFields = {
   email: string;
   password: string;
@@ -90,6 +91,78 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
   } catch {
     return {
       message: "Failed to create an account.",
+      fieldErrors: {},
+      prevFormState: formData,
+    };
+  }
+  redirect("/");
+};
+
+type SignInFields = {
+  email: string;
+  password: string;
+};
+
+type SignInState = ActionState<SignInFields>;
+
+export const handleSignIn = async (prevState: SignInState, data: FormData): Promise<SignInState> => {
+  // Duplication
+  const cookieStore = await cookies();
+  const isSessionCookieSet = cookieStore.get("session");
+  if (!!isSessionCookieSet) {
+    redirect("/");
+  }
+
+  const formData = {
+    email: data.get("email") as string | null,
+    password: data.get("password") as string | null,
+  };
+
+  const parsedData = signInSchema.safeParse(formData);
+  if (!parsedData.success) {
+    return {
+      message: "Incorrect form data",
+      fieldErrors: z.flattenError(parsedData.error).fieldErrors,
+      prevFormState: formData,
+    };
+  }
+
+  const { email, password } = parsedData.data;
+  try {
+    const user = await userQueries.findUserByEmail(email);
+    if (!user) {
+      return {
+        message: "User with given email address does not exists",
+        fieldErrors: {},
+        prevFormState: formData,
+      };
+    }
+
+    const { password: hashedPassword, role, id: userId } = user;
+
+    const passwordMatch = await bcrypt.compare(password, hashedPassword);
+    if (!passwordMatch) {
+      return {
+        message: "Incorrect credentials",
+        fieldErrors: {},
+        prevFormState: formData,
+      };
+    }
+    const sessionToken = await JWTHelpers.encryptJWT({
+      payload: {
+        userId,
+        role,
+      },
+    });
+
+    cookieStore.set({
+      value: sessionToken,
+      name: "session",
+      httpOnly: true,
+    });
+  } catch {
+    return {
+      message: "Failed to login",
       fieldErrors: {},
       prevFormState: formData,
     };

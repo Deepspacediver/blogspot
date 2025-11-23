@@ -45,7 +45,7 @@ export const decryptJWT = async (cookie: string) => {
       issuer: ISSUER,
     });
   } catch {
-    // todo
+    // todo probably shouldnt throw error
     throw new CustomError("Incorrect JWT signature", 400);
   }
 };

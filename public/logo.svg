@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="200" height="150">
+  <defs>
+    <style>
+      .fill-dark { fill: #1A1A1A; }
+      /* Darker beige (Camel/Gold tone) for contrast on white */
+      .fill-beige { fill: #C29B61; } 
+      /* Geometric sans-serif stack */
+      .font-geo { font-family: 'Futura', 'Century Gothic', 'Tw Cen MT', Arial, sans-serif; font-weight: bold; font-size: 130px;}
+    </style>
+  </defs>
+  
+  <g transform="translate(25, 120)">
+    <text x="0" y="0" class="font-geo fill-dark">B</text>
+    <text x="85" y="0" class="font-geo fill-beige">S</text>
+  </g>
+</svg>

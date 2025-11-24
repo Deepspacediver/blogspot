@@ -41,6 +41,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* CUSTOM */
+  --shadow-header: box-shadow: -3px 5px 24px -19px rgba(66, 68, 90, 1);
 }
 
 /* TODO  FINISH COLORS */

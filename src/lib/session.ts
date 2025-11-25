@@ -11,6 +11,8 @@ const SIGN_ALG = "HS256";
 
 export type JWTPayload = {
   userId: string;
+  email: string;
+  username?: string;
   role: UserRole;
 };
 

@@ -74,8 +74,8 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
       email,
     });
 
-    const { id: userId, role } = user;
-    const payload = { userId, role };
+    const { id: userId, role, email: userEmail, username } = user;
+    const payload = { userId, role, email: userEmail, username };
 
     const appAccessToken = await JWTHelpers.encryptJWT({
       payload,
@@ -105,7 +105,7 @@ type SignInFields = {
 
 export type SignInState = ActionState<SignInFields>;
 
-export const handleSignIn = async (prevState: SignInState, data: FormData): Promise<SignInState> => {
+export const handleSignIn = async (_prevState: SignInState, data: FormData): Promise<SignInState> => {
   // Duplication
   const cookieStore = await cookies();
   const isSessionCookieSet = cookieStore.get("session");
@@ -138,7 +138,7 @@ export const handleSignIn = async (prevState: SignInState, data: FormData): Prom
       };
     }
 
-    const { password: hashedPassword, role, id: userId } = user;
+    const { password: hashedPassword, role, id: userId, username, email: userEmail } = user;
 
     const passwordMatch = await bcrypt.compare(password, hashedPassword);
     if (!passwordMatch) {
@@ -152,6 +152,8 @@ export const handleSignIn = async (prevState: SignInState, data: FormData): Prom
       payload: {
         userId,
         role,
+        username,
+        email: userEmail,
       },
     });
 

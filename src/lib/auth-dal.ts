@@ -49,6 +49,8 @@ export const validateAppToken = async () => {
       payload: {
         userId: decryptedToken.payload.userId,
         role: decryptedToken.payload.role,
+        username: decryptedToken.payload.username,
+        email: decryptedToken.payload.email,
       },
       signingSecret: JWT_REFRESH_SIGNING_KEY,
       expiration: EXPIRATION_15_MINUTES,

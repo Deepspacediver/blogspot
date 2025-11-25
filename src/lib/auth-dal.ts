@@ -30,19 +30,25 @@ export const validateAccessToken = async () => {
 };
 
 export const getSessionData = async () => {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("session")?.value;
-  const decryptedToken = !!sessionCookie ? await decryptJWT(sessionCookie) : null;
-  const payload = decryptedToken?.payload;
-  return {
-    user: payload
-      ? {
-          username: payload?.username,
-          email: payload.email,
-          role: payload.role,
-        }
-      : undefined,
-  };
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("session")?.value;
+    const decryptedToken = !!sessionCookie ? await decryptJWT(sessionCookie) : null;
+    const payload = decryptedToken?.payload;
+    return {
+      user: payload
+        ? {
+            username: payload?.username,
+            email: payload.email,
+            role: payload.role,
+          }
+        : undefined,
+    };
+  } catch {
+    return {
+      user: undefined,
+    };
+  }
 };
 
 export const validateAppToken = async () => {

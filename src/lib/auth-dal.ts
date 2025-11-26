@@ -2,38 +2,17 @@
 
 import { decryptJWT, encryptJWT, JWT_REFRESH_SIGNING_KEY } from "./session";
 import { cookies } from "next/headers";
-import { CustomError } from "@/errors/custom-error";
 import { redirect } from "next/navigation";
 import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
+import { isExpired } from "./utils";
 
-// todo replace with datenfs
-const isExpired = (date: Date | number) => {
-  return new Date(date).valueOf() - new Date().valueOf() < 0;
-};
-
-// todo
-// this should be moved, it will handle extenral api tokens
-export const validateAccessToken = async () => {
-  const sessionAccessToken = (await cookies()).get("access")?.value;
-  if (!sessionAccessToken) {
-    throw new CustomError("Missing access token,", 401);
-  }
-  const jwtPayload = await decryptJWT(sessionAccessToken);
-  if (!jwtPayload) {
-    throw new CustomError("Missing access token.", 401);
-  }
-  // todo use datefns
-  const isJWTExpired = isExpired(jwtPayload.payload.exp);
-  if (isJWTExpired) {
-    throw new CustomError("Access token is expired.", 401);
-  }
-};
-
-export const getSessionData = async () => {
+export const getAppSessionData = async () => {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("session")?.value;
-    const decryptedToken = !!sessionCookie ? await decryptJWT(sessionCookie) : null;
+    const decryptedToken = !!sessionCookie
+      ? await decryptJWT({ cookie: sessionCookie, signingSecret: JWT_REFRESH_SIGNING_KEY })
+      : null;
     const payload = decryptedToken?.payload;
     return {
       user: payload
@@ -44,7 +23,7 @@ export const getSessionData = async () => {
           }
         : undefined,
     };
-  } catch {
+  } catch (e) {
     return {
       user: undefined,
     };
@@ -54,18 +33,20 @@ export const getSessionData = async () => {
 export const validateAppToken = async () => {
   const cookieStore = await cookies();
   try {
-    const sessionAccessToken = cookieStore.get("session")?.value;
-    if (!sessionAccessToken) {
+    const sessionCookie = cookieStore.get("session")?.value;
+    if (!sessionCookie) {
       redirect("/auth/sign-in");
     }
-
-    const decryptedToken = await decryptJWT(sessionAccessToken);
-    if (!decryptedToken) {
+    const decryptedToken = await decryptJWT({
+      cookie: sessionCookie,
+      signingSecret: JWT_REFRESH_SIGNING_KEY,
+    });
+    if (!decryptedToken.payload) {
       redirect("/auth/sign-in");
     }
     const isJWTExpired = isExpired(decryptedToken?.payload?.exp);
     if (!isJWTExpired) {
-      return decryptedToken.payload;
+      return { payload: decryptedToken.payload };
     }
     const newSessionToken = await encryptJWT({
       payload: {
@@ -84,7 +65,7 @@ export const validateAppToken = async () => {
       httpOnly: true,
     });
 
-    return decryptedToken.payload;
+    return { payload: decryptedToken.payload };
   } catch {
     cookieStore.delete("session");
     redirect("/auth/sign-in");

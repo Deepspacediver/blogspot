@@ -1,6 +1,5 @@
 import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
 import { UserRole } from "@/db/types";
-import { CustomError } from "@/errors/custom-error";
 import * as jose from "jose";
 import { validateAppToken } from "./auth-dal";
 
@@ -40,15 +39,29 @@ export const encryptJWT = async ({
   return authCookie;
 };
 
-// todo improve
-export const decryptJWT = async (cookie: string) => {
+type DecryptJWTProps = {
+  cookie: string;
+  signingSecret?: Uint8Array<ArrayBufferLike>;
+};
+
+export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KEY }: DecryptJWTProps) => {
   try {
-    return await jose.jwtVerify<JWT>(cookie, JWT_ACCESS_SIGNING_KEY, {
+    const decryptedToken = await jose.jwtVerify<JWT>(cookie, signingSecret, {
       issuer: ISSUER,
     });
-  } catch {
-    // todo probably shouldnt throw error
-    throw new CustomError("Incorrect JWT signature", 400);
+
+    return {
+      error: "",
+      details: "",
+      payload: decryptedToken.payload,
+    };
+  } catch (e) {
+    const details = e instanceof Error ? e.message : "";
+    return {
+      error: "Failed to verify user token",
+      details,
+      payload: undefined,
+    };
   }
 };
 
@@ -60,7 +73,7 @@ type ActionProps<T> = {
 
 export const protectedAction = <T>(action: ({ prevState, formData, payload }: ActionProps<T>) => Promise<T>) => {
   return async function (prevState: T, formData?: FormData) {
-    const payload = await validateAppToken();
+    const { payload } = await validateAppToken();
     return await action({ prevState, payload, formData });
   };
 };

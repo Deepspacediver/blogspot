@@ -4,3 +4,7 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export const isExpired = (date: Date | number) => {
+  return new Date(date).valueOf() - new Date().valueOf() < 0;
+};

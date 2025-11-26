@@ -11,6 +11,7 @@ import { ActionState } from "@/db/types";
 import { redirect } from "next/navigation";
 import { signInSchema } from "@/models/auth.models";
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 type SignUpFormFields = {
   email: string;
   password: string;
@@ -155,6 +156,7 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
         username,
         email: userEmail,
       },
+      signingSecret: JWTHelpers.JWT_REFRESH_SIGNING_KEY,
     });
 
     cookieStore.set({
@@ -169,5 +171,6 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
       prevFormState: formData,
     };
   }
+  revalidatePath("/");
   redirect("/");
 };

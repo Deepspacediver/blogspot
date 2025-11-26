@@ -5,7 +5,7 @@ import * as passwordUtils from "@/lib/credentials/hash";
 import * as authModels from "@/models/auth.models";
 import * as JWTHelpers from "@/lib/session";
 import { cookies } from "next/headers";
-import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
+import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS } from "@/constants/jwt";
 import z from "zod";
 import { ActionState } from "@/db/types";
 import { redirect } from "next/navigation";
@@ -78,17 +78,32 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
     const { id: userId, role, email: userEmail, username } = user;
     const payload = { userId, role, email: userEmail, username };
 
-    const appAccessToken = await JWTHelpers.encryptJWT({
-      payload,
-      signingSecret: JWTHelpers.JWT_REFRESH_SIGNING_KEY,
-      expiration: EXPIRATION_15_MINUTES,
-    });
+    const [appAccessToken, appRefreshToken] = await Promise.all([
+      JWTHelpers.encryptJWT({
+        payload,
+        signingSecret: JWTHelpers.JWT_ACCESS_SIGNING_KEY,
+        expiration: EXPIRATION_15_MINUTES,
+      }),
+      JWTHelpers.encryptJWT({
+        payload,
+        signingSecret: JWTHelpers.JWT_REFRESH_SIGNING_KEY,
+        expiration: EXPIRATION_7_DAYS,
+      }),
+    ]);
 
-    cookieStore.set({
-      name: "session",
-      value: appAccessToken,
-      httpOnly: true,
-    });
+    cookieStore
+      .set({
+        name: "session",
+        value: appAccessToken,
+        httpOnly: true,
+        sameSite: true,
+      })
+      .set({
+        name: "refresh",
+        value: appRefreshToken,
+        httpOnly: true,
+        sameSite: true,
+      });
   } catch {
     return {
       message: "Failed to create an account.",
@@ -149,21 +164,40 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
         prevFormState: formData,
       };
     }
-    const sessionToken = await JWTHelpers.encryptJWT({
-      payload: {
-        userId,
-        role,
-        username,
-        email: userEmail,
-      },
-      signingSecret: JWTHelpers.JWT_REFRESH_SIGNING_KEY,
-    });
 
-    cookieStore.set({
-      value: sessionToken,
-      name: "session",
-      httpOnly: true,
-    });
+    const payload = {
+      userId,
+      role,
+      username,
+      email: userEmail,
+    };
+
+    const [appAccessToken, appRefreshToken] = await Promise.all([
+      JWTHelpers.encryptJWT({
+        payload,
+        signingSecret: JWTHelpers.JWT_ACCESS_SIGNING_KEY,
+        expiration: EXPIRATION_15_MINUTES,
+      }),
+      JWTHelpers.encryptJWT({
+        payload,
+        signingSecret: JWTHelpers.JWT_REFRESH_SIGNING_KEY,
+        expiration: EXPIRATION_7_DAYS,
+      }),
+    ]);
+
+    cookieStore
+      .set({
+        name: "session",
+        value: appAccessToken,
+        httpOnly: true,
+        sameSite: true,
+      })
+      .set({
+        name: "refresh",
+        value: appRefreshToken,
+        httpOnly: true,
+        sameSite: true,
+      });
   } catch {
     return {
       message: "Failed to login",

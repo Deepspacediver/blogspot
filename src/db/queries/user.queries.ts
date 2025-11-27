@@ -2,20 +2,14 @@ import psqlPool from "../../../db";
 import { UserCK } from "../types";
 
 export const findUserByEmail = async (email: string) => {
-  try {
-    //todo remove password fetching ?
-    const user = await psqlPool.query<UserCK>(
-      `
+  const user = await psqlPool.query<UserCK>(
+    `
       SELECT * FROM users WHERE email = $1;
     `,
-      [email],
-    );
+    [email],
+  );
 
-    return user?.rows?.[0];
-  } catch (e) {
-    // todo
-    console.error(e);
-  }
+  return user?.rows?.[0];
 };
 
 type CreateUserProps = {

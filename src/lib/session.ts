@@ -51,14 +51,15 @@ export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KE
     });
 
     return {
-      error: "",
+      error: null,
+      errorMessage: "",
       details: "",
       payload: decryptedToken.payload,
     };
   } catch (e) {
     const details = e instanceof Error ? e.message : "";
     return {
-      error: "Failed to verify user token",
+      error: e,
       details,
       payload: undefined,
     };
@@ -67,13 +68,14 @@ export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KE
 
 type ActionProps<T> = {
   prevState: T;
-  payload: JWT;
+  payload: JWTPayload;
   formData?: FormData;
 };
 
 export const protectedAction = <T>(action: ({ prevState, formData, payload }: ActionProps<T>) => Promise<T>) => {
   return async function (prevState: T, formData?: FormData) {
     const { payload } = await validateAppToken();
+
     return await action({ prevState, payload, formData });
   };
 };

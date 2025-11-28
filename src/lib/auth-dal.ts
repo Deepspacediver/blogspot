@@ -42,20 +42,22 @@ export const getAppSessionData = async () => {
 export const validateAppToken = async () => {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("session")?.value;
-  if (!sessionCookie) {
-    redirect("/auth/sign-in");
-  }
-  const decryptedAccessToken = await decryptJWT({
-    cookie: sessionCookie,
-    signingSecret: JWT_ACCESS_SIGNING_KEY,
-  });
 
-  if (decryptedAccessToken.payload) {
+  const decryptedAccessToken = sessionCookie
+    ? await decryptJWT({
+        cookie: sessionCookie,
+        signingSecret: JWT_ACCESS_SIGNING_KEY,
+      })
+    : undefined;
+
+  if (decryptedAccessToken?.payload) {
     return { payload: decryptedAccessToken.payload };
   }
 
-  const isExpiredAccessError = !!decryptedAccessToken.error && decryptedAccessToken.error instanceof JoseErrors.JWTExpired;
+  const isExpiredAccessError =
+    !!decryptedAccessToken && !!decryptedAccessToken.error && decryptedAccessToken.error instanceof JoseErrors.JWTExpired;
   if (!isExpiredAccessError) {
+    cookieStore.delete("session").delete("refresh");
     redirect("/auth/signin");
   }
 
@@ -70,6 +72,7 @@ export const validateAppToken = async () => {
   });
 
   if (!!decryptedRefreshToken.error || !decryptedRefreshToken.payload) {
+    cookieStore.delete("session").delete("refresh");
     redirect("/auth/signin");
   }
 

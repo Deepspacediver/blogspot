@@ -27,12 +27,12 @@ export const getAppSessionData = async () => {
       error: decryptedToken?.error,
       details: decryptedToken?.details,
     };
-  } catch (e) {
-    const error = e instanceof Error ? e.message : "Failed to decrypt JWT";
+  } catch (error) {
+    const details = error instanceof Error ? error.message : "Failed to decrypt JWT";
     return {
       user: undefined,
       error,
-      details: error,
+      details,
     };
   }
 };
@@ -74,8 +74,6 @@ export const validateAppToken = async () => {
   }
 
   try {
-    // Todo read up if refresh token stores user data
-    // and/or fetches user based on payload
     const user = await findUserByEmail(decryptedRefreshToken.payload.email);
     if (!user) {
       throw new CustomError("User with given email was not found", 404);

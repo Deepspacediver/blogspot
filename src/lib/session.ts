@@ -1,10 +1,12 @@
-import { EXPIRATION_15_MINUTES } from "@/constants/jwt";
+"use server";
+
+import { EXPIRATION_15_MINUTES, JWT_ACCESS_SIGNING_KEY } from "@/constants/jwt";
 import { UserRole } from "@/db/types";
 import * as jose from "jose";
 import { validateAppToken } from "./auth-dal";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
-export const JWT_ACCESS_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_JWT_SECRET!);
-export const JWT_REFRESH_SIGNING_KEY = jose.base64url.decode(process.env.BLOGSPOT_REFRESH_SIGNING_SECRET!);
 const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
 
@@ -72,9 +74,12 @@ type ActionProps<T> = {
   formData?: FormData;
 };
 
-export const protectedAction = <T>(action: ({ prevState, formData, payload }: ActionProps<T>) => Promise<T>) => {
+export const protectedAction = async <T>(action: ({ prevState, formData, payload }: ActionProps<T>) => Promise<T>) => {
   return async function (prevState: T, formData?: FormData) {
-    const { payload } = await validateAppToken();
+    const { payload, error } = await validateAppToken();
+    if (!!error || !payload) {
+      redirect("/auth/sign-in");
+    }
 
     return await action({ prevState, payload, formData });
   };

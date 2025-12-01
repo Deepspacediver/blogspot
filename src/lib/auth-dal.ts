@@ -1,9 +1,8 @@
 "use server";
 
-import { decryptJWT, encryptJWT, JWT_ACCESS_SIGNING_KEY, JWT_REFRESH_SIGNING_KEY, JWTPayload } from "./session";
+import { decryptJWT, encryptJWT, JWTPayload } from "./session";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS } from "@/constants/jwt";
+import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
 import { findUserByEmail } from "@/db/queries/user.queries";
 import { errors as JoseErrors } from "jose";
 import { CustomError } from "@/errors/custom-error";
@@ -12,9 +11,12 @@ export const getAppSessionData = async () => {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("session")?.value;
-    const decryptedToken = !!sessionCookie
-      ? await decryptJWT({ cookie: sessionCookie, signingSecret: JWT_REFRESH_SIGNING_KEY })
-      : null;
+    const decryptedToken = sessionCookie
+      ? await decryptJWT({
+          cookie: sessionCookie,
+          signingSecret: JWT_ACCESS_SIGNING_KEY,
+        })
+      : undefined;
     const payload = decryptedToken?.payload;
     return {
       user: payload
@@ -37,8 +39,6 @@ export const getAppSessionData = async () => {
   }
 };
 
-// Todo this could be improved by not redirecting, instead returning errors
-// change if it is  necessary to reuse validateAppToken
 export const validateAppToken = async () => {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("session")?.value;
@@ -51,19 +51,20 @@ export const validateAppToken = async () => {
     : undefined;
 
   if (decryptedAccessToken?.payload) {
-    return { payload: decryptedAccessToken.payload };
+    return { payload: decryptedAccessToken.payload, error: null, details: "" };
   }
 
   const isExpiredAccessError =
     !!decryptedAccessToken && !!decryptedAccessToken.error && decryptedAccessToken.error instanceof JoseErrors.JWTExpired;
   if (!isExpiredAccessError) {
-    cookieStore.delete("session").delete("refresh");
-    redirect("/auth/signin");
+    cookieStore.delete("sesion").delete("refresh");
+    return { payload: null, error: null, details: "" };
   }
 
   const refreshCookie = cookieStore.get("refresh")?.value;
   if (!refreshCookie) {
-    redirect("/auth/sign-in");
+    cookieStore.delete("sesion").delete("refresh");
+    return { payload: null, error: new CustomError("Missing refresh token", 401), details: "Missing refresh token" };
   }
 
   const decryptedRefreshToken = await decryptJWT({
@@ -72,8 +73,12 @@ export const validateAppToken = async () => {
   });
 
   if (!!decryptedRefreshToken.error || !decryptedRefreshToken.payload) {
-    cookieStore.delete("session").delete("refresh");
-    redirect("/auth/signin");
+    cookieStore.delete("sesion").delete("refresh");
+    return {
+      payload: null,
+      error: decryptedRefreshToken.error || new CustomError("Invalid refresh token", 401),
+      details: decryptedRefreshToken.details,
+    };
   }
 
   try {
@@ -114,8 +119,13 @@ export const validateAppToken = async () => {
         sameSite: true,
       });
 
-    return { payload };
-  } catch {
-    redirect("/auth/signin");
+    return { payload, error: null, details: "null" };
+  } catch (error) {
+    cookieStore.delete("sesion").delete("refresh");
+    return {
+      payload: null,
+      error,
+      details: "Failed to authenticate via JWT",
+    };
   }
 };

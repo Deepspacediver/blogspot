@@ -1,3 +1,5 @@
+"use server";
+
 import psqlPool from "../../../db";
 import { UserCK } from "../types";
 

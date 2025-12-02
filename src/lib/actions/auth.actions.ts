@@ -29,7 +29,7 @@ export type SignUpState = ActionState<SignUpFormFields>;
 
 export const handleSignUp = async (prevState: SignUpState, data?: FormData): Promise<SignUpState> => {
   const cookieStore = await cookies();
-  const isSessionCookieSet = cookieStore.get("session");
+  const isSessionCookieSet = cookieStore.get("session")?.value;
   if (!!isSessionCookieSet) {
     redirect("/");
   }
@@ -124,7 +124,7 @@ export type SignInState = ActionState<SignInFields>;
 export const handleSignIn = async (_prevState: SignInState, data: FormData): Promise<SignInState> => {
   // Duplication
   const cookieStore = await cookies();
-  const isSessionCookieSet = cookieStore.get("session");
+  const isSessionCookieSet = cookieStore.get("session")?.value;
   if (!!isSessionCookieSet) {
     redirect("/");
   }

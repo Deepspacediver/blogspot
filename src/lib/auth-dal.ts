@@ -1,19 +1,31 @@
 "use server";
 
 import { decryptJWT, encryptJWT, JWTPayload } from "./session";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
 import { findUserByEmail } from "@/db/queries/user.queries";
 import { errors as JoseErrors } from "jose";
 import { CustomError } from "@/errors/custom-error";
 
+const regex = /(session|refresh)=([^;]+)/g;
+
+const getSetCookieHeader = (setCookieHeader: string) =>
+  Object.fromEntries([...setCookieHeader.matchAll(regex)].map((match) => [match[1], match[2]]));
+
 export const getAppSessionData = async () => {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("session")?.value;
-    const decryptedToken = sessionCookie
+    const headersList = await headers();
+    // getSetCookie method always return empty array
+    const headerCookie = headersList.get("set-cookie");
+    const setCookieMap = getSetCookieHeader(headerCookie || "");
+
+    const appSessionCookie = sessionCookie || setCookieMap?.["session"];
+
+    const decryptedToken = appSessionCookie
       ? await decryptJWT({
-          cookie: sessionCookie,
+          cookie: appSessionCookie,
           signingSecret: JWT_ACCESS_SIGNING_KEY,
         })
       : undefined;

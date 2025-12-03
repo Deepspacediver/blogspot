@@ -4,7 +4,7 @@ import * as userQueries from "@/db/queries/user.queries";
 import * as passwordUtils from "@/lib/credentials/hash";
 import * as authModels from "@/models/auth.models";
 import * as JWTHelpers from "@/lib/session";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
 import z from "zod";
 import { ActionState } from "@/db/types";
@@ -207,4 +207,12 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
   }
   revalidatePath("/");
   redirect("/");
+};
+
+export const handleSignOut = async () => {
+  const headerList = await headers();
+  const cookieStore = await cookies();
+  cookieStore.delete("session").delete("refresh");
+  const currentPath = headerList.get("x-current-path");
+  revalidatePath(currentPath || "/");
 };

@@ -6,9 +6,11 @@ import { findUserByEmail } from "@/db/queries/user.queries";
 import { CustomError } from "@/errors/custom-error";
 
 export async function middleware(request: NextRequest) {
+  const headers = new Headers();
+  headers.set("x-current-path", request.nextUrl.pathname);
   const sessionCookie = request.cookies.get("session")?.value;
   const refreshCookie = request.cookies.get("refresh")?.value;
-  const response = NextResponse.next();
+  const response = NextResponse.next({ headers });
 
   const decryptedAccessToken = sessionCookie
     ? await decryptJWT({

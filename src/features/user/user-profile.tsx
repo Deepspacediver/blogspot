@@ -1,6 +1,9 @@
+"use client";
+
 import { UserCK } from "@/db/types";
 import React from "react";
-import { User } from "lucide-react";
+import { Power, User } from "lucide-react";
+import { handleSignOut } from "@/lib/actions/auth.actions";
 
 type UserProfileProps = {
   user: Pick<UserCK, "email" | "role" | "username">;
@@ -9,9 +12,10 @@ type UserProfileProps = {
 export default function UserProfile({ user }: UserProfileProps) {
   const { email, username } = user;
   return (
-    <div>
+    <div className="flex gap-1">
       <User />
       <p>{username || email}</p>
+      <Power onClick={async () => await handleSignOut()} />
     </div>
   );
 }

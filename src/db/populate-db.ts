@@ -18,6 +18,7 @@ export const populateDb = async () => {
         id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
         title VARCHAR(255) NOT NULL,
         content TEXT,
+        short_description VARCHAR(300),
         author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         is_published BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

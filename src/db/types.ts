@@ -27,6 +27,7 @@ export type Post = {
   id: string;
   title: string;
   content: string;
+  short_description: string;
   author_id: string;
   created_at: Date;
   updated_at?: Date;

@@ -28,8 +28,6 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary`}>
         <Header />
         <main>{children}</main>
-        {/* Footer comp */}
-        <footer></footer>
       </body>
     </html>
   );

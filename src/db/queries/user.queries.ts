@@ -1,10 +1,10 @@
 "use server";
 
-import psqlPool from "../../../db";
-import { UserCK } from "../types";
+import psqlPool from "..";
+import { OptionalReturn, UserCK } from "../types";
 
 export const findUserByEmail = async (email: string) => {
-  const user = await psqlPool.query<UserCK>(
+  const user = await psqlPool.query<OptionalReturn<UserCK>>(
     `
       SELECT * FROM users WHERE email = $1;
     `,

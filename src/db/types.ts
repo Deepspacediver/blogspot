@@ -64,6 +64,8 @@ export type PostCK = DeepCamelCaseKeys<Post>;
 
 export type FileCK = DeepCamelCaseKeys<File>;
 
+export type OptionalReturn<T> = Promise<T | undefined>;
+
 export type NullablePartial<T> = Partial<{
   [R in keyof T]: T[R] | null;
 }>;

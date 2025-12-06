@@ -12,6 +12,7 @@ import { redirect } from "next/navigation";
 import { signInSchema } from "@/models/auth.models";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+
 type SignUpFormFields = {
   email: string;
   password: string;

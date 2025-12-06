@@ -1,3 +1,5 @@
+import { defaultFetchState } from "@/constants/fetch-states";
+
 export enum UserRole {
   ADMIN = "ADMIN",
   USER = "USER",
@@ -81,4 +83,12 @@ export type ActionState<T extends FormState> = {
   message: string;
   fieldErrors: ErrorFields<T>;
   prevFormState: NullablePartial<T>;
+};
+
+export type RequestGenericReturn = {
+  data: Record<PropertyKey, unknown> | null;
+  // TODO might not be needed
+  error: unknown;
+  details?: string | null;
+  message: string;
 };

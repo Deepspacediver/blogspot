@@ -31,6 +31,7 @@ export type Post = {
   author_id: string;
   created_at: Date;
   updated_at?: Date;
+  image?: string;
   is_published: boolean;
 };
 

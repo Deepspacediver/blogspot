@@ -21,6 +21,7 @@ export const populateDb = async () => {
         short_description VARCHAR(300),
         author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         is_published BOOLEAN NOT NULL DEFAULT FALSE,
+        image TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT null
       );

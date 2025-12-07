@@ -2,6 +2,8 @@ import { SignInState, SignUpState } from "@/lib/actions/auth.actions";
 
 const defaultFormActionState = {
   message: "",
+  error: null,
+  details: "",
   fieldErrors: {},
 };
 

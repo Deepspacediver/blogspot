@@ -15,15 +15,15 @@ export const getPostWithComments = async (id: string) => {
       },
       ...defaultFetchState,
     } satisfies RequestGenericReturn;
-  } catch (err) {
+  } catch (error) {
     const genericMessage = "Failed to fetch a post.";
-    const details = err instanceof Error ? err.message : genericMessage;
+    const details = getErrorDetails({ error, defaultMessage: genericMessage });
     return {
       post: null,
       comments: null,
       message: genericMessage,
       details,
-      error: err,
+      error,
     };
   }
 };

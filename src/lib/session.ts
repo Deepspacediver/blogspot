@@ -5,7 +5,7 @@ import { UserRole } from "@/db/types";
 import * as jose from "jose";
 import { validateAppToken } from "./auth-dal";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { getErrorDetails } from "./utils";
 
 const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
@@ -58,10 +58,10 @@ export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KE
       details: "",
       payload: decryptedToken.payload,
     };
-  } catch (e) {
-    const details = e instanceof Error ? e.message : "";
+  } catch (error) {
+    const details = getErrorDetails({ error });
     return {
-      error: e,
+      error,
       details,
       payload: undefined,
     };

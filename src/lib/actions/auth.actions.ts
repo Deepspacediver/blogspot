@@ -12,6 +12,8 @@ import { redirect } from "next/navigation";
 import { signInSchema } from "@/models/auth.models";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { getErrorDetails } from "../utils";
+import { defaultSignInState, defaultSignupState } from "@/constants/form-states";
 
 type SignUpFormFields = {
   email: string;
@@ -37,8 +39,8 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
 
   if (!data) {
     return {
+      ...defaultSignupState,
       message: "Missing form data",
-      fieldErrors: {},
       prevFormState: prevState.prevFormState,
     };
   }
@@ -52,6 +54,7 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
 
   if (!parsedData.success) {
     return {
+      ...defaultSignupState,
       message: "Incorrect account details",
       fieldErrors: z.flattenError(parsedData.error).fieldErrors,
       prevFormState: formData,
@@ -65,8 +68,8 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
 
     if (userExists) {
       return {
+        ...defaultSignupState,
         message: "User with a given email already exists.",
-        fieldErrors: {},
         prevFormState: formData,
       };
     }
@@ -105,11 +108,14 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
         httpOnly: true,
         sameSite: true,
       });
-  } catch {
+  } catch (error) {
+    const details = getErrorDetails({ error });
     return {
+      ...defaultSignupState,
       message: "Failed to create an account.",
-      fieldErrors: {},
       prevFormState: formData,
+      error,
+      details,
     };
   }
   redirect("/");
@@ -138,10 +144,11 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
   const parsedData = signInSchema.safeParse(formData);
   if (!parsedData.success) {
     return {
+      ...defaultSignInState,
       message: "Incorrect form data",
       fieldErrors: z.flattenError(parsedData.error).fieldErrors,
       prevFormState: formData,
-    };
+    } satisfies SignInState;
   }
 
   const { email, password } = parsedData.data;
@@ -149,10 +156,10 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
     const user = await userQueries.findUserByEmail(email);
     if (!user) {
       return {
+        ...defaultSignInState,
         message: "User with given email address does not exists",
-        fieldErrors: {},
         prevFormState: formData,
-      };
+      } satisfies SignInState;
     }
 
     const { password: hashedPassword, role, id: userId, username, email: userEmail } = user;
@@ -160,10 +167,10 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
     const passwordMatch = await bcrypt.compare(password, hashedPassword);
     if (!passwordMatch) {
       return {
+        ...defaultSignInState,
         message: "Incorrect credentials",
-        fieldErrors: {},
         prevFormState: formData,
-      };
+      } satisfies SignInState;
     }
 
     const payload = {
@@ -199,10 +206,12 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
         httpOnly: true,
         sameSite: true,
       });
-  } catch {
+  } catch (error) {
+    const details = getErrorDetails({ error });
     return {
+      ...defaultSignInState,
       message: "Failed to login",
-      fieldErrors: {},
+      details,
       prevFormState: formData,
     };
   }

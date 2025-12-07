@@ -43,7 +43,7 @@ export const findCommentsForPost = async (id: string) => {
   return commentsWithAuthors.rows;
 };
 
-type FindPostsReturn = Pick<
+export type FindPostsReturn = Pick<
   PostCK & UserCK,
   "id" | "title" | "shortDescription" | "image" | "createdAt" | "email" | "pictureUrl" | "username"
 >;
@@ -56,7 +56,7 @@ export const findPosts = async (cursor: string) => {
         posts.title,
         posts.short_description AS "shortDescription,
         posts.image,
-        posts.created_at aS "createdAt",
+        posts.created_at AS "createdAt",
         users.email,
         users.username,
         users.picture_url AS pictureUrl,

@@ -24,7 +24,7 @@ export const createUser = async ({ email, password }: CreateUserProps) => {
       email, password
     ) VALUES ( 
       $1, $2
-    ) RETURNING id, role;`,
+    ) RETURNING id, role, username, email;`,
     [email, password],
   );
   return user?.rows?.[0];

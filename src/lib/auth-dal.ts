@@ -6,6 +6,7 @@ import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_R
 import { findUserByEmail } from "@/db/queries/user.queries";
 import { errors as JoseErrors } from "jose";
 import { CustomError } from "@/errors/custom-error";
+import { getErrorDetails } from "./utils";
 
 const regex = /(session|refresh)=([^;]+)/g;
 
@@ -42,7 +43,10 @@ export const getAppSessionData = async () => {
       details: decryptedToken?.details,
     };
   } catch (error) {
-    const details = error instanceof Error ? error.message : "Failed to decrypt JWT";
+    const details = getErrorDetails({
+      error,
+      defaultMessage: "Failed to decrypt JWT",
+    });
     return {
       user: undefined,
       error,

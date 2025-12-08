@@ -28,7 +28,7 @@ export const getPostWithComments = async (id: string) => {
   }
 };
 
-export const getPosts = async (cursor: string) => {
+export const getPosts = async (cursor?: string) => {
   try {
     const data = await findPosts(cursor);
     return {

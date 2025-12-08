@@ -48,26 +48,29 @@ export type FindPostsReturn = Pick<
   "id" | "title" | "shortDescription" | "image" | "createdAt" | "email" | "pictureUrl" | "username"
 >;
 
-export const findPosts = async (cursor: string) => {
-  const { rows } = await psqlPool.query<OptionalReturn<FindPostsReturn>>(
+export const findPosts = async (cursor?: string) => {
+  // TODO can this be more readable?
+  const paramInjectionDependency = cursor ? [cursor] : ([] satisfies string[]);
+  const { rows } = await psqlPool.query<FindPostsReturn>(
     `
       SELECT 
         posts.id,
         posts.title,
-        posts.short_description AS "shortDescription,
+        posts.short_description AS "shortDescription",
         posts.image,
         posts.created_at AS "createdAt",
         users.email,
         users.username,
-        users.picture_url AS pictureUrl,
+        users.picture_url AS "pictureUrl"
       FROM posts 
       JOIN users ON posts.author_id = users.id
       WHERE 
-        posts.id > $1
-        AND posts.is_published IS TRUE
+        ${(!!cursor && "posts.id > $1 AND") || ""}
+        posts.is_published IS TRUE
       ORDER BY posts.id
+      LIMIT 5;
       `,
-    [cursor],
+    [...paramInjectionDependency],
   );
 
   return rows;

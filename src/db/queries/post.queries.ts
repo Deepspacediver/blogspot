@@ -1,7 +1,7 @@
 import psqlPool from "..";
 import { CommentCK, OptionalReturn, PostCK, UserCK } from "../types";
 
-type PostWithAuthorReturn = Pick<UserCK & PostCK, "username" | "email" | "pictureUrl" | "title" | "content">;
+type PostWithAuthorReturn = Pick<UserCK, "username" | "email" | "pictureUrl"> & Pick<PostCK, "title" | "content" | "createdAt">;
 export const findPost = async (id: string) => {
   const postWithAuth = await psqlPool.query<OptionalReturn<PostWithAuthorReturn>>(
     `
@@ -10,7 +10,8 @@ export const findPost = async (id: string) => {
       users.email,
       users.picture_url AS "pictureUrl",
       posts.title,
-      posts.content
+      posts.content,
+      posts.created_at as "createdAt"
     FROM posts
     JOIN users ON posts.author_id = users.id
     WHERE posts.is_published IS TRUE 
@@ -22,9 +23,7 @@ export const findPost = async (id: string) => {
   return postWithAuth?.rows?.[0];
 };
 
-// TODO there is mix of fields, createdAt from user and createdAt from comment
-type CommentsWithAuthor = Pick<UserCK & CommentCK, "username" | "email" | "pictureUrl" | "content" | "createdAt">;
-
+type CommentsWithAuthor = Pick<UserCK, "username" | "email" | "pictureUrl"> & Pick<CommentCK, "content" | "createdAt">;
 export const findCommentsForPost = async (id: string) => {
   const commentsWithAuthors = await psqlPool.query<OptionalReturn<CommentsWithAuthor>>(
     `
@@ -43,10 +42,8 @@ export const findCommentsForPost = async (id: string) => {
   return commentsWithAuthors.rows;
 };
 
-export type FindPostsReturn = Pick<
-  PostCK & UserCK,
-  "id" | "title" | "shortDescription" | "image" | "createdAt" | "email" | "pictureUrl" | "username"
->;
+export type FindPostsReturn = Pick<PostCK, "id" | "title" | "shortDescription" | "image" | "createdAt"> &
+  Pick<UserCK, "email" | "pictureUrl" | "username">;
 
 export const findPosts = async (cursor?: string) => {
   // TODO can this be more readable?

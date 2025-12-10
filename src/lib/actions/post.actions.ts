@@ -3,7 +3,7 @@ import { findCommentsForPost, findPost, findPosts } from "@/db/queries/post.quer
 import { getErrorDetails } from "../utils";
 import { RequestGenericReturn } from "@/db/types";
 
-export const getPostWithComments = async (id: string) => {
+export const getPostWithComments = async (id: number) => {
   try {
     const postWithAuth = await findPost(id);
     const comments = await findCommentsForPost(id);
@@ -19,8 +19,7 @@ export const getPostWithComments = async (id: string) => {
     const genericMessage = "Failed to fetch a post.";
     const details = getErrorDetails({ error, defaultMessage: genericMessage });
     return {
-      post: null,
-      comments: null,
+      data: null,
       message: genericMessage,
       details,
       error,
@@ -28,7 +27,7 @@ export const getPostWithComments = async (id: string) => {
   }
 };
 
-export const getPosts = async (cursor?: string) => {
+export const getPosts = async (cursor?: number) => {
   try {
     const data = await findPosts(cursor);
     return {

@@ -1,8 +1,9 @@
 import psqlPool from "..";
 import { CommentCK, OptionalReturn, PostCK, UserCK } from "../types";
 
-type PostWithAuthorReturn = Pick<UserCK, "username" | "email" | "pictureUrl"> & Pick<PostCK, "title" | "content" | "createdAt">;
-export const findPost = async (id: string) => {
+export type PostWithAuthorReturn = Pick<UserCK, "username" | "email" | "pictureUrl"> &
+  Pick<PostCK, "title" | "shortDescription" | "content" | "image" | "createdAt">;
+export const findPost = async (id: number) => {
   const postWithAuth = await psqlPool.query<OptionalReturn<PostWithAuthorReturn>>(
     `
     SELECT 
@@ -11,7 +12,8 @@ export const findPost = async (id: string) => {
       users.picture_url AS "pictureUrl",
       posts.title,
       posts.content,
-      posts.created_at as "createdAt"
+      posts.created_at as "createdAt",
+      posts.short_description as "shortDescription"
     FROM posts
     JOIN users ON posts.author_id = users.id
     WHERE posts.is_published IS TRUE 
@@ -23,14 +25,16 @@ export const findPost = async (id: string) => {
   return postWithAuth?.rows?.[0];
 };
 
-type CommentsWithAuthor = Pick<UserCK, "username" | "email" | "pictureUrl"> & Pick<CommentCK, "content" | "createdAt">;
-export const findCommentsForPost = async (id: string) => {
+export type CommentsWithAuthor = Pick<UserCK, "username" | "email" | "pictureUrl"> &
+  Pick<CommentCK, "id" | "content" | "createdAt">;
+export const findCommentsForPost = async (id: number) => {
   const commentsWithAuthors = await psqlPool.query<OptionalReturn<CommentsWithAuthor>>(
     `
     SELECT 
       users.username,
       users.email,
       users.picture_url AS "pictureUrl",
+      comments.id,
       comments.content,
       comments.created_at AS "createdAt"
     FROM comments
@@ -42,18 +46,17 @@ export const findCommentsForPost = async (id: string) => {
   return commentsWithAuthors.rows;
 };
 
-export type FindPostsReturn = Pick<PostCK, "id" | "title" | "shortDescription" | "image" | "createdAt"> &
+export type FindPostsReturn = Pick<PostCK, "id" | "title" | "createdAt" | "image"> &
   Pick<UserCK, "email" | "pictureUrl" | "username">;
 
-export const findPosts = async (cursor?: string) => {
+export const findPosts = async (cursor?: number) => {
   // TODO can this be more readable?
-  const paramInjectionDependency = cursor ? [cursor] : ([] satisfies string[]);
+  const paramInjectionDependency = cursor ? [cursor] : ([] satisfies number[]);
   const { rows } = await psqlPool.query<FindPostsReturn>(
     `
       SELECT 
         posts.id,
         posts.title,
-        posts.short_description AS "shortDescription",
         posts.image,
         posts.created_at AS "createdAt",
         users.email,

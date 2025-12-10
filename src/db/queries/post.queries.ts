@@ -28,7 +28,7 @@ export const findPost = async (id: number) => {
 export type CommentsWithAuthor = Pick<UserCK, "username" | "email" | "pictureUrl"> &
   Pick<CommentCK, "id" | "content" | "createdAt">;
 export const findCommentsForPost = async (id: number) => {
-  const commentsWithAuthors = await psqlPool.query<OptionalReturn<CommentsWithAuthor>>(
+  const commentsWithAuthors = await psqlPool.query<CommentsWithAuthor>(
     `
     SELECT 
       users.username,

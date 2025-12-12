@@ -4,7 +4,7 @@ export enum UserRole {
 }
 
 export type User = {
-  id: string;
+  id: number;
   email: string;
   username?: string;
   password: string;
@@ -15,20 +15,20 @@ export type User = {
 };
 
 export type Comment = {
-  id: string;
+  id: number;
   content: string;
-  user_id: string;
-  post_id: string;
+  user_id: number;
+  post_id: number;
   created_at: Date;
   updated_at?: Date;
 };
 
 export type Post = {
-  id: string;
+  id: number;
   title: string;
   content: string;
   short_description: string;
-  author_id: string;
+  author_id: number;
   created_at: Date;
   updated_at?: Date;
   image?: string;
@@ -36,9 +36,9 @@ export type Post = {
 };
 
 export type File = {
-  id: string;
+  id: number;
   name: string;
-  post_id: string;
+  post_id: number;
   created_at: Date;
   size: number;
 };
@@ -76,14 +76,14 @@ export type ErrorFields<T extends Record<PropertyKey, unknown>> = NullablePartia
 }>;
 
 // TODO FormState should be more extensive
-export type FormState = Record<string, string | number>;
+export type FormState = Record<string, string | number | null | undefined>;
 export type ActionState<T extends FormState> = {
   message: string;
   // TODO might not be needed
   error?: unknown;
   details: string;
   fieldErrors: ErrorFields<T>;
-  prevFormState: NullablePartial<T>;
+  prevFormState: T;
 };
 
 export type RequestGenericReturn = {

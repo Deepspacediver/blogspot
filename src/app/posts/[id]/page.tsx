@@ -1,8 +1,9 @@
-import CommentList from "@/features/comment/comment.list";
-import UserProfile from "@/features/user/user-profile";
+import CommentForm from "@/features/comment/comment.form";
 import { getPostWithComments } from "@/lib/actions/post.actions";
-import { formatDateToAppConvention, formatDateToDateTimeAttribute } from "@/lib/utils";
+import CommentList from "@/features/comment/comment.list";
 import React from "react";
+import { getAppSessionData } from "@/lib/auth-dal";
+import Post from "@/features/posts/post";
 
 type PostPageProps = {
   params: Promise<{ id: string }>;
@@ -14,34 +15,22 @@ type PostPageProps = {
 export default async function Page({ params }: PostPageProps) {
   const { id } = await params;
   const parsedId = +id;
+  const { user } = await getAppSessionData();
   const { data } = await getPostWithComments(parsedId);
 
   if (!data || !data.post) {
-    // TODO temporary
+    // TODO temporary add notFound
     return <div>Couldnt find a post</div>;
   }
-  const { title, shortDescription, content, createdAt, username, email, pictureUrl } = data.post;
-  const createdAtFormatted = formatDateToAppConvention(createdAt);
-  const createdAtAttribute = formatDateToDateTimeAttribute(createdAt);
+
   return (
     <div>
-      <article>
-        <header>
-          <h1>{title}</h1>
-          <UserProfile
-            user={{
-              email,
-              username,
-              pictureUrl,
-            }}
-          />
-          <time dateTime={createdAtAttribute}>{createdAtFormatted}</time>
-        </header>
-        <section>{shortDescription}</section>
-        <section>{content}</section>
-      </article>
-      {/* TODO  Handle empty comments */}
-      <CommentList data={data.comments} />
+      <div>
+        <Post post={data.post} />
+        {/* TODO  Handle empty comments */}
+        <CommentList data={data.comments} />
+      </div>
+      {parsedId && user && <CommentForm postId={parsedId} />}
     </div>
   );
 }

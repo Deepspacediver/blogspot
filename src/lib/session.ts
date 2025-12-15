@@ -11,7 +11,7 @@ const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
 
 export type JWTPayload = {
-  userId: string;
+  userId: number;
   email: string;
   username?: string;
   role: UserRole;
@@ -68,19 +68,16 @@ export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KE
   }
 };
 
-type ActionProps<T> = {
-  prevState: T;
+type ActionProps = {
   payload: JWTPayload;
-  formData?: FormData;
 };
 
-export const protectedAction = async <T>(action: ({ prevState, formData, payload }: ActionProps<T>) => Promise<T>) => {
-  return async function (prevState: T, formData?: FormData) {
-    const { payload, error } = await validateAppToken();
-    if (!!error || !payload) {
-      redirect("/auth/sign-in");
-    }
+// TODO possibly Add config for onError
+export const protectedAction = async <T>(action: ({ payload }: ActionProps) => Promise<T>) => {
+  const { payload, error } = await validateAppToken();
+  if (!!error || !payload) {
+    redirect("/auth/sign-in");
+  }
 
-    return await action({ prevState, payload, formData });
-  };
+  return await action({ payload });
 };

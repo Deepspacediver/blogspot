@@ -5,3 +5,8 @@ export const createCommentSchema = z.object({
   userId: z.number(),
   postId: z.number(),
 });
+
+export const deleteCommentSchema = z.object({
+  userId: z.number(),
+  commentId: z.number(),
+});

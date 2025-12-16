@@ -28,7 +28,7 @@ export default async function Page({ params }: PostPageProps) {
       <div>
         <Post post={data.post} />
         {/* TODO  Handle empty comments */}
-        <CommentList data={data.comments} />
+        <CommentList postId={parsedId} data={data.comments} />
       </div>
       {parsedId && user && <CommentForm postId={parsedId} />}
     </div>

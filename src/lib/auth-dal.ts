@@ -37,6 +37,7 @@ export const getAppSessionData = async () => {
             username: payload?.username,
             email: payload.email,
             role: payload.role,
+            userId: payload.userId,
           }
         : undefined,
       error: decryptedToken?.error,

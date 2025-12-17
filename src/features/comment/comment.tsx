@@ -14,7 +14,7 @@ type CommentProps = {
 export default async function Comment({ data, postId }: CommentProps) {
   const { user } = await getAppSessionData();
   const { username, email, pictureUrl, createdAt, content, id } = data;
-  const canDeleteComment = !!user && (user.userId === id || user.role === UserRole.ADMIN);
+  const canDeleteComment = !!user && (user.userId === id || user.role === UserRole.SUPER_ADMIN);
 
   const { formattedDate, attributeDate } = getFormattedDateWithAttribute(createdAt);
   return (

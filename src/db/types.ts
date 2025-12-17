@@ -1,4 +1,5 @@
 export enum UserRole {
+  SUPER_ADMIN = "SUPER_ADMIN",
   ADMIN = "ADMIN",
   USER = "USER",
 }
@@ -83,7 +84,7 @@ export type ActionState<T extends FormState> = {
   error?: unknown;
   details: string;
   fieldErrors: ErrorFields<T>;
-  prevFormState: T;
+  prevFormState: NullablePartial<T>;
 };
 
 export type RequestGenericReturn = {

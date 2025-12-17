@@ -21,16 +21,16 @@ export const createComment = async ({ postId, userId, content }: CreateCommentPr
 type DeleteCommentProps = {
   userId: number;
   commentId: number;
-  isAdmin?: boolean;
+  isSuperAdmin?: boolean;
 };
 
-export const deleteComment = async ({ userId, commentId, isAdmin = false }: DeleteCommentProps) => {
-  const paramInjectionDeps = isAdmin ? [commentId] : [commentId, userId];
+export const deleteComment = async ({ userId, commentId, isSuperAdmin = false }: DeleteCommentProps) => {
+  const paramInjectionDeps = isSuperAdmin ? [commentId] : [commentId, userId];
   await psqlPool.query(
     `
     DELETE FROM comments 
       WHERE id = $1 
-      ${!isAdmin ? `AND user_id = $2` : ""};
+      ${!isSuperAdmin ? `AND user_id = $2` : ""};
     `,
     paramInjectionDeps,
   );

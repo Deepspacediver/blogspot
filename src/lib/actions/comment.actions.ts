@@ -84,7 +84,7 @@ export const handleDeleteComment = async ({ commentId, postId }: HandleDeleteCom
 
     const { userId } = parsedData.data;
     try {
-      await deleteComment({ userId, commentId, isAdmin: payload.role === UserRole.ADMIN });
+      await deleteComment({ userId, commentId, isSuperAdmin: payload.role === UserRole.SUPER_ADMIN });
       revalidatePath(`/posts/${postId}`);
       return {
         error: null,

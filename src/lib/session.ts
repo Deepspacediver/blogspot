@@ -54,7 +54,6 @@ export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KE
 
     return {
       error: null,
-      errorMessage: "",
       details: "",
       payload: decryptedToken.payload,
     };

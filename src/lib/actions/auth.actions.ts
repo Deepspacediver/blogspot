@@ -7,7 +7,7 @@ import * as JWTHelpers from "@/lib/session";
 import { cookies, headers } from "next/headers";
 import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
 import z from "zod";
-import { ActionState } from "@/db/types";
+import { ActionState, UserRole } from "@/db/types";
 import { redirect } from "next/navigation";
 import { signInSchema } from "@/models/auth.models";
 import bcrypt from "bcryptjs";
@@ -21,11 +21,13 @@ type SignUpFormFields = {
   confirmPassword: string;
 };
 
-type SignUpProps = Omit<SignUpFormFields, "confirmPassword">;
+type SignUpProps = Omit<SignUpFormFields, "confirmPassword"> & {
+  role?: UserRole;
+};
 
-export const signUp = async ({ email, password }: SignUpProps) => {
+export const signUp = async ({ email, password, role }: SignUpProps) => {
   const hashedPassword = await passwordUtils.hash(password);
-  return await userQueries.createUser({ email, password: hashedPassword });
+  return await userQueries.createUser({ email, password: hashedPassword, role });
 };
 
 export type SignUpState = ActionState<SignUpFormFields>;
@@ -70,7 +72,7 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
       return {
         ...defaultSignupState,
         message: "User with a given email already exists.",
-        prevFormState: formData,
+        prevFormState: parsedData.data,
       };
     }
 

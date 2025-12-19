@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { format } from "date-fns";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-import { cookies } from "next/headers";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -41,4 +40,22 @@ type ClearCookiesProps = {
 
 export const clearJWTCookies = ({ cookieStore, isAPI = false }: ClearCookiesProps) => {
   cookieStore.delete("refresh").delete(isAPI ? "access" : "session");
+};
+
+type APIResponseProps<T> = {
+  data?: T;
+  res?: typeof Response;
+  status?: number;
+};
+
+// TODO default might not work
+export const APIResponse = <T = null>({ res = Response, data, status }: APIResponseProps<T>) => {
+  return res.json(
+    {
+      data: data || null,
+    },
+    {
+      status,
+    },
+  );
 };

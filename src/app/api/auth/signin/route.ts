@@ -10,9 +10,9 @@ import { signInSchema } from "@/models/auth.models";
 import { NextRequest } from "next/server";
 import * as JWTHelpers from "@/lib/session";
 import { cookies } from "next/headers";
-import { getErrorDetails } from "@/lib/utils";
 import { treeifyError } from "zod";
 import bcrypt from "bcryptjs";
+import { APIResponse } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -22,28 +22,22 @@ export async function POST(req: NextRequest) {
   const accessCookie = cookieStore.get("access")?.value;
 
   if (accessCookie) {
-    return Response.json(
-      {
-        data: {
-          message: "Already logged in",
-        },
+    return APIResponse({
+      data: {
+        message: "Already logged in",
       },
-      {
-        status: 400,
-      },
-    );
+      status: 400,
+    });
   }
 
   if (!parsedData.success) {
-    return Response.json(
-      {
-        data: {
-          message: "Invalid request data",
-          errors: treeifyError(parsedData.error).properties,
-        },
+    return APIResponse({
+      data: {
+        message: "Invalid request data",
+        errors: treeifyError(parsedData.error).properties,
       },
-      { status: 400 },
-    );
+      status: 400,
+    });
   }
 
   const { email, password } = parsedData.data;
@@ -51,26 +45,20 @@ export async function POST(req: NextRequest) {
   try {
     const exisitngUser = await userQueries.findUserByEmail(email);
     if (!exisitngUser) {
-      return Response.json(
-        {
-          data: "Invalid credentials",
-        },
-        {
-          status: 400,
-        },
-      );
+      return APIResponse({
+        data: { message: "Invalid credentials" },
+        status: 400,
+      });
     }
 
     const passwordsMatch = await bcrypt.compare(password, exisitngUser.password);
     if (!passwordsMatch) {
-      return Response.json(
-        {
-          data: {
-            message: "Passwords do not match from previously created account",
-          },
+      return APIResponse({
+        data: {
+          message: "Passwords do not match from previously created account",
         },
-        { status: 400 },
-      );
+        status: 400,
+      });
     }
 
     const shouldUpdateRole = exisitngUser.role === UserRole.USER;
@@ -87,14 +75,12 @@ export async function POST(req: NextRequest) {
         };
 
     if (!user) {
-      return Response.json(
-        {
-          data: {
-            message: "Failed to login",
-          },
+      return APIResponse({
+        data: {
+          message: "Failed to login",
         },
-        { status: 500 },
-      );
+        status: 500,
+      });
     }
 
     const payload = {
@@ -129,20 +115,18 @@ export async function POST(req: NextRequest) {
         httpOnly: true,
         secure: true,
       });
-
-    Response.json(
-      { data: { message: "Successfully created user" } },
-      {
-        status: 200,
+    return APIResponse({
+      data: {
+        message: "Successfully logged in",
       },
-    );
-  } catch (error) {
-    const details = getErrorDetails({ error });
-    Response.json(
-      { data: { message: "Failed to create an user", details } },
-      {
-        status: 200,
+      status: 200,
+    });
+  } catch {
+    return APIResponse({
+      data: {
+        message: "Failed to create a user",
       },
-    );
+      status: 500,
+    });
   }
 }

@@ -6,7 +6,7 @@ import {
 } from "@/constants/jwt";
 import * as userQueries from "@/db/queries/user.queries";
 import { UserRole } from "@/db/types";
-import { signInSchema } from "@/models/auth.models";
+import * as authModels from "@/models/auth.models";
 import { NextRequest } from "next/server";
 import * as JWTHelpers from "@/lib/session";
 import { cookies } from "next/headers";
@@ -16,7 +16,7 @@ import { APIResponse } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const parsedData = signInSchema.safeParse(body);
+  const parsedData = authModels.signInSchema.safeParse(body);
 
   const cookieStore = await cookies();
   const accessCookie = cookieStore.get("access")?.value;

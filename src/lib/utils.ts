@@ -49,7 +49,7 @@ type APIResponseProps<T> = {
 };
 
 // TODO default might not work
-export const APIResponse = <T = null>({ res = Response, data, status }: APIResponseProps<T>) => {
+export const APIResponse = <T = null>({ res = Response, data, status = 200 }: APIResponseProps<T>) => {
   return res.json(
     {
       data: data || null,

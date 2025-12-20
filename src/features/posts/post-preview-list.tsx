@@ -1,4 +1,4 @@
-import { FindPostsReturn } from "@/db/queries/post.queries";
+import { type FindPostsReturn } from "@/db/queries/post.queries";
 import React from "react";
 import PostPreview from "./post-preview";
 

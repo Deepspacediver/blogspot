@@ -9,7 +9,7 @@ import {
   JWT_API_ACCESS_SIGNING_KEY,
   JWT_REFRESH_SIGNING_KEY,
 } from "@/constants/jwt";
-import { findUserByEmail } from "@/db/queries/user.queries";
+import * as userQueries from "@/db/queries/user.queries";
 import { errors as JoseErrors } from "jose";
 import { CustomError } from "@/errors/custom-error";
 import { getErrorDetails } from "./utils";
@@ -105,7 +105,7 @@ export const validateAppToken = async () => {
   }
 
   try {
-    const user = await findUserByEmail(decryptedRefreshToken.payload.email);
+    const user = await userQueries.findUserByEmail(decryptedRefreshToken.payload.email);
     if (!user) {
       throw new CustomError("User with given email was not found", 404);
     }

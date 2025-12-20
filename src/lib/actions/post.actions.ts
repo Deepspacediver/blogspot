@@ -2,11 +2,16 @@ import { defaultFetchState } from "@/constants/fetch-states";
 import { findCommentsForPost, findPost, findPosts } from "@/db/queries/post.queries";
 import { getErrorDetails } from "../utils";
 import { RequestGenericReturn } from "@/db/types";
+import { CustomError } from "@/errors/custom-error";
 
 export const getPostWithComments = async (id: number) => {
   try {
-    const postWithAuth = await findPost(id);
-    const comments = await findCommentsForPost(id);
+    const postWithAuth = await findPost({ id });
+
+    if (!postWithAuth) {
+      throw new CustomError("Post not found", 404);
+    }
+    const comments = await findCommentsForPost({ id });
 
     return {
       data: {
@@ -29,7 +34,7 @@ export const getPostWithComments = async (id: number) => {
 
 export const getPosts = async (cursor?: number) => {
   try {
-    const data = await findPosts(cursor);
+    const data = await findPosts({ cursor });
     return {
       data,
       ...defaultFetchState,

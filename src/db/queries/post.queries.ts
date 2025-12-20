@@ -3,7 +3,13 @@ import { CommentCK, OptionalReturn, PostCK, UserCK } from "../types";
 
 export type PostWithAuthorReturn = Pick<UserCK, "username" | "email" | "pictureUrl"> &
   Pick<PostCK, "title" | "shortDescription" | "content" | "image" | "createdAt">;
-export const findPost = async (id: number) => {
+
+type FindPostProps = {
+  id: number;
+  isOnlyPublished?: boolean;
+};
+
+export const findPost = async ({ id, isOnlyPublished = true }: FindPostProps) => {
   const postWithAuth = await psqlPool.query<OptionalReturn<PostWithAuthorReturn>>(
     `
     SELECT 
@@ -16,8 +22,8 @@ export const findPost = async (id: number) => {
       posts.short_description as "shortDescription"
     FROM posts
     JOIN users ON posts.author_id = users.id
-    WHERE posts.is_published IS TRUE 
-      AND posts.id = $1;
+    WHERE posts.id = $1 
+    ${isOnlyPublished ? "AND posts.is_published IS TRUE" : ""};
     `,
     [id],
   );
@@ -27,7 +33,12 @@ export const findPost = async (id: number) => {
 
 export type CommentWithAuthor = Pick<UserCK, "username" | "email" | "pictureUrl"> &
   Pick<CommentCK, "id" | "content" | "createdAt">;
-export const findCommentsForPost = async (id: number) => {
+
+type FindCommentsForPostProps = {
+  id: number;
+  isOnlyPublished?: boolean;
+};
+export const findCommentsForPost = async ({ id }: FindCommentsForPostProps) => {
   const commentsWithAuthors = await psqlPool.query<CommentWithAuthor>(
     `
     SELECT 
@@ -49,9 +60,14 @@ export const findCommentsForPost = async (id: number) => {
 export type FindPostsReturn = Pick<PostCK, "id" | "title" | "createdAt" | "image"> &
   Pick<UserCK, "email" | "pictureUrl" | "username">;
 
-export const findPosts = async (cursor?: number) => {
+type FindPostsProps = {
+  cursor?: number;
+  isOnlyPublished?: boolean;
+};
+
+export const findPosts = async ({ cursor, isOnlyPublished = true }: FindPostsProps) => {
   // TODO can this be more readable?
-  const paramInjectionDependency = cursor ? [cursor] : ([] satisfies number[]);
+  const paramInjectionDependency = cursor ? [cursor] : [];
   const { rows } = await psqlPool.query<FindPostsReturn>(
     `
       SELECT 
@@ -59,13 +75,15 @@ export const findPosts = async (cursor?: number) => {
         posts.title,
         posts.image,
         posts.created_at AS "createdAt",
+        posts.is_published as "isPublished",
         users.email,
         users.username,
         users.picture_url AS "pictureUrl"
       FROM posts 
       JOIN users ON posts.author_id = users.id
       WHERE 
-        ${(!!cursor && "posts.id > $1 AND") || ""}
+        ${cursor ? "posts.id > $1 AND" : ""}
+        ${isOnlyPublished ? "posts.is_published IS TRUE AND" : ""}
         posts.is_published IS TRUE
       ORDER BY posts.id
       LIMIT 5;

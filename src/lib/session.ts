@@ -3,9 +3,9 @@
 import { EXPIRATION_15_MINUTES, JWT_ACCESS_SIGNING_KEY } from "@/constants/jwt";
 import { UserRole } from "@/db/types";
 import * as jose from "jose";
-import { validateAppToken } from "./auth-dal";
+import { validateAPIToken, validateAppToken } from "./auth-dal";
 import { redirect } from "next/navigation";
-import { getErrorDetails } from "./utils";
+import { APIResponse, getErrorDetails } from "./utils";
 
 const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
@@ -70,13 +70,33 @@ export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KE
 type ActionProps = {
   payload: JWTPayload;
 };
+type ProtectedActionConfig = {
+  isAPI?: boolean;
+};
 
 // TODO possibly Add config for onError
-export const protectedAction = async <T>(action: ({ payload }: ActionProps) => Promise<T>) => {
+export async function protectedAction<T>(
+  action: ({ payload }: ActionProps) => Promise<T>,
+  config?: ProtectedActionConfig,
+): Promise<T> {
+  if (!!config?.isAPI) {
+    const { payload, error } = await validateAPIToken();
+    if (error || !payload) {
+      return APIResponse({
+        data: {
+          message: "Unauthorized",
+        },
+        status: 401,
+      }) as never;
+    }
+
+    return await action({ payload: payload });
+  }
+
   const { payload, error } = await validateAppToken();
   if (!!error || !payload) {
     redirect("/auth/sign-in");
   }
 
   return await action({ payload });
-};
+}

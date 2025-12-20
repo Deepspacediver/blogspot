@@ -1,7 +1,7 @@
 "use server";
 
 import { defaultCreateCommentState } from "@/constants/form-states";
-import { createComment, deleteComment } from "@/db/queries/comment.queries";
+import * as commentQueries from "@/db/queries/comment.queries";
 import { ActionState, UserRole } from "@/db/types";
 import * as commentModels from "@/models/comment.models";
 import z from "zod";
@@ -46,7 +46,7 @@ export const handleCreateComment = async (
       };
     }
     try {
-      await createComment({ postId, userId: formData.userId, content: parsedData.data.content });
+      await commentQueries.createComment({ postId, userId: formData.userId, content: parsedData.data.content });
       revalidatePath(`/posts/${postId}`);
       return {
         ...defaultCreateCommentState,
@@ -84,7 +84,7 @@ export const handleDeleteComment = async ({ commentId, postId }: HandleDeleteCom
 
     const { userId } = parsedData.data;
     try {
-      await deleteComment({ userId, commentId, isSuperAdmin: payload.role === UserRole.SUPER_ADMIN });
+      await commentQueries.deleteComment({ userId, commentId, isSuperAdmin: payload.role === UserRole.SUPER_ADMIN });
       revalidatePath(`/posts/${postId}`);
       return {
         error: null,

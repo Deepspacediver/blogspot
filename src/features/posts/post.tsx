@@ -1,4 +1,4 @@
-import { PostWithAuthorReturn } from "@/db/queries/post.queries";
+import { type PostWithAuthorReturn } from "@/db/queries/post.queries";
 import React from "react";
 import UserProfile from "../user/user-profile";
 import { getFormattedDateWithAttribute } from "@/lib/utils";

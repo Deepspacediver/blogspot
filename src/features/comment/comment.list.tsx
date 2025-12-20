@@ -1,4 +1,4 @@
-import { CommentWithAuthor } from "@/db/queries/post.queries";
+import { type CommentWithAuthor } from "@/db/queries/post.queries";
 import React from "react";
 import Comment from "@/features/comment/comment";
 

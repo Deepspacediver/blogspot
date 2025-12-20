@@ -2,7 +2,13 @@
 
 import { decryptJWT, encryptJWT, JWTPayload } from "./session";
 import { cookies, headers } from "next/headers";
-import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
+import {
+  EXPIRATION_15_MINUTES,
+  EXPIRATION_7_DAYS,
+  JWT_ACCESS_SIGNING_KEY,
+  JWT_API_ACCESS_SIGNING_KEY,
+  JWT_REFRESH_SIGNING_KEY,
+} from "@/constants/jwt";
 import { findUserByEmail } from "@/db/queries/user.queries";
 import { errors as JoseErrors } from "jose";
 import { CustomError } from "@/errors/custom-error";
@@ -145,4 +151,22 @@ export const validateAppToken = async () => {
       details: "Failed to authenticate via JWT",
     };
   }
+};
+
+export const validateAPIToken = async () => {
+  const cookieStore = await cookies();
+  const accessCookie = cookieStore.get("access")?.value;
+
+  const decryptedAccessToken = accessCookie
+    ? await decryptJWT({
+        cookie: accessCookie,
+        signingSecret: JWT_API_ACCESS_SIGNING_KEY,
+      })
+    : undefined;
+
+  if (!decryptedAccessToken?.payload || decryptedAccessToken.error) {
+    return { payload: null, error: decryptedAccessToken?.error, details: decryptedAccessToken?.details };
+  }
+
+  return { payload: decryptedAccessToken.payload, error: null, details: "" };
 };

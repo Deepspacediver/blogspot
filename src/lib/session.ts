@@ -6,6 +6,7 @@ import * as jose from "jose";
 import { validateAPIToken, validateAppToken } from "./auth-dal";
 import { redirect } from "next/navigation";
 import { APIResponse, getErrorDetails } from "./utils";
+import { NextRequest } from "next/server";
 
 const ISSUER = "blogspot";
 const SIGN_ALG = "HS256";
@@ -66,21 +67,14 @@ export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KE
     };
   }
 };
-
 type ActionProps = {
   payload: JWTPayload;
+  body?: unknown;
 };
-type ProtectedActionConfig = {
-  isAPI?: boolean;
-};
-
-// TODO possibly Add config for onError
-export async function protectedAction<T>(
-  action: ({ payload }: ActionProps) => Promise<T>,
-  config?: ProtectedActionConfig,
-): Promise<T> {
-  if (!!config?.isAPI) {
+export async function protectedAction<T>(action: ({ payload, body }: ActionProps) => Promise<T>, req?: NextRequest): Promise<T> {
+  if (!!req) {
     const { payload, error } = await validateAPIToken();
+    const body = await req.json();
     if (error || !payload) {
       return APIResponse({
         data: {
@@ -90,13 +84,13 @@ export async function protectedAction<T>(
       }) as never;
     }
 
-    return await action({ payload: payload });
-  }
+    return await action({ payload, body });
+  } else {
+    const { payload, error } = await validateAppToken();
+    if (!!error || !payload) {
+      redirect("/auth/sign-in");
+    }
 
-  const { payload, error } = await validateAppToken();
-  if (!!error || !payload) {
-    redirect("/auth/sign-in");
+    return await action({ payload });
   }
-
-  return await action({ payload });
 }

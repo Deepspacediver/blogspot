@@ -1,5 +1,6 @@
 "use server";
 
+import { parseUpdateQueryDependencies } from "@/lib/utils";
 import psqlPool from "..";
 import { OptionalReturn, UserCK, UserRole } from "../types";
 
@@ -45,24 +46,19 @@ export const createUser = async ({ email, password, role = UserRole.USER }: Crea
   return user?.rows?.[0];
 };
 
-type UpdateUserProps = { id: number } & Partial<Omit<UserCK, "createdAt" | "updatedAt" | "id">>;
+type UpdateUserProps = { id: number } & Partial<Omit<UserCK, "createdAt" | "updatedAt">>;
 
 export const updateUser = async ({ id, ...rest }: UpdateUserProps) => {
-  const columnNames = Object.entries(rest)
-    .filter(([_, val]) => val !== undefined)
-    .map(([key], i) => `${key} = $${i + 1}`)
-    .join(", ");
-  const whereIndex = columnNames.length;
-  const columnValues = [...Object.entries(rest).flatMap(([_, val]) => (!!val ? [val] : [])), id];
+  const { columnNames, columnValues, endIndex } = parseUpdateQueryDependencies(rest);
 
   const user = await psqlPool.query<UserReturn>(
     `
     UPDATE users
       SET ${columnNames}
-      WHERE id = $${whereIndex}
+      WHERE id = $${endIndex + 1}
       RETURNING id, role, username, email;
   `,
-    columnValues,
+    [columnValues, id],
   );
 
   return user?.rows?.[0];

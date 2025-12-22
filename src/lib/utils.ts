@@ -59,3 +59,51 @@ export const APIResponse = <T = null>({ res = Response, data, status = 200 }: AP
     },
   );
 };
+
+const UPPER_CASE_LETTER_REGEX = /(?=[A-Z])/;
+
+export const stringCamelCaseToKebabCase = (key: string) => {
+  return key.split(UPPER_CASE_LETTER_REGEX).join("_").toLowerCase();
+};
+
+export const parseCreateQueryDependencies = <T extends Record<PropertyKey, T[keyof T]>>(data: T) => {
+  const dataWithoutUndefined = Object.entries(data).filter(([_, val]) => val !== undefined);
+  const { columns, values, pgIndices } = dataWithoutUndefined.reduce<{
+    columns: string[];
+    pgIndices: `$${number}`[];
+    values: T[keyof T][];
+  }>(
+    (acc, curr, i) => {
+      const [key, val] = curr;
+      const kebabCaseKey = stringCamelCaseToKebabCase(key);
+      const pgIndex = `$${i + 1}` satisfies `$${number}`;
+      acc.values.push(val);
+      acc.columns.push(kebabCaseKey);
+      acc.pgIndices.push(pgIndex);
+      return acc;
+    },
+    {
+      columns: [],
+      values: [],
+      pgIndices: [],
+    },
+  );
+  const endIndex = columns.length;
+  const columnsString = columns.join(", ");
+  const pgIndicesString = pgIndices.join(", ");
+  return { columnsString, values, pgIndicesString, endIndex };
+};
+
+export const parseUpdateQueryDependencies = <T extends Record<PropertyKey, T[keyof T]>>(data: T) => {
+  const columnNames = Object.entries(data)
+    .filter(([_, val]) => val !== undefined)
+    .map(([key], i) => `${key} = $${i + 1}`)
+    .join(", ");
+  const columnValues = [...Object.entries(data).flatMap(([_, val]) => (!!val ? [val] : []))];
+  const endIndex = columnNames.length;
+  return {
+    columnNames,
+    columnValues,
+    endIndex,
+  };
+};

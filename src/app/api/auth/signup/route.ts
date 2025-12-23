@@ -35,83 +35,76 @@ export async function POST(req: NextRequest) {
 
   const { email, password } = parsedData.data;
 
-  try {
-    const exisitngUser = await userQueries.findUserByEmail(email);
-    let user;
+  const exisitngUser = await userQueries.findUserByEmail(email);
+  let user;
 
-    if (exisitngUser) {
-      const passwordsMatch = await bcrypt.compare(password, exisitngUser.password);
-      if (!passwordsMatch) {
-        return APIResponse({
-          data: {
-            message: "Passwords do not match from previously created account",
-          },
-          status: 400,
-        });
-      }
-      user = await userQueries.updateUser({
-        id: exisitngUser.id,
-        role: UserRole.ADMIN,
-      });
-    } else {
-      user = await signUp({
-        email,
-        password,
-        role: UserRole.ADMIN,
-      });
-    }
-
-    if (!user) {
+  if (exisitngUser) {
+    const passwordsMatch = await bcrypt.compare(password, exisitngUser.password);
+    if (!passwordsMatch) {
       return APIResponse({
         data: {
-          message: "Failed to create or find user",
+          message: "Passwords do not match from previously created account",
         },
-        status: 500,
+        status: 400,
       });
     }
+    user = await userQueries.updateUser({
+      id: exisitngUser.id,
+      role: UserRole.ADMIN,
+    });
+  } else {
+    user = await signUp({
+      email,
+      password,
+      role: UserRole.ADMIN,
+    });
+  }
 
-    const payload = {
-      userId: user.id,
-      role: user.role,
-      username: user.username,
-      email: user.email,
-    } satisfies JWTHelpers.JWTPayload;
-
-    const [accessToken, refreshToken] = await Promise.all([
-      JWTHelpers.encryptJWT({
-        payload,
-        signingSecret: JWT_API_ACCESS_SIGNING_KEY,
-        expiration: EXPIRATION_15_MINUTES,
-      }),
-      JWTHelpers.encryptJWT({
-        payload,
-        signingSecret: JWT_API_REFRESH_SIGNING_KEY,
-        expiration: EXPIRATION_7_DAYS,
-      }),
-    ]);
-
-    cookieStore
-      .set({
-        value: accessToken,
-        name: "access",
-        secure: true,
-      })
-      .set({
-        value: refreshToken,
-        name: "refresh",
-        httpOnly: true,
-        secure: true,
-      });
+  if (!user) {
     return APIResponse({
       data: {
-        message: "Successfully created user",
+        message: "Failed to create or find user",
       },
-      status: 200,
-    });
-  } catch {
-    return APIResponse({
-      data: { message: "Failed to create an user" },
       status: 500,
     });
   }
+
+  const payload = {
+    userId: user.id,
+    role: user.role,
+    username: user.username,
+    email: user.email,
+  } satisfies JWTHelpers.JWTPayload;
+
+  const [accessToken, refreshToken] = await Promise.all([
+    JWTHelpers.encryptJWT({
+      payload,
+      signingSecret: JWT_API_ACCESS_SIGNING_KEY,
+      expiration: EXPIRATION_15_MINUTES,
+    }),
+    JWTHelpers.encryptJWT({
+      payload,
+      signingSecret: JWT_API_REFRESH_SIGNING_KEY,
+      expiration: EXPIRATION_7_DAYS,
+    }),
+  ]);
+
+  cookieStore
+    .set({
+      value: accessToken,
+      name: "access",
+      secure: true,
+    })
+    .set({
+      value: refreshToken,
+      name: "refresh",
+      httpOnly: true,
+      secure: true,
+    });
+  return APIResponse({
+    data: {
+      message: "Successfully created user",
+    },
+    status: 200,
+  });
 }

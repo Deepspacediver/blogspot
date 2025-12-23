@@ -83,14 +83,21 @@ export async function protectedAction<T>(action: ({ payload, body }: ActionProps
         status: 401,
       }) as never;
     }
-
-    return await action({ payload, body });
+    try {
+      return await action({ payload, body });
+    } catch {
+      return APIResponse({
+        data: {
+          message: "Internal Server Error",
+        },
+        status: 500,
+      }) as never;
+    }
   } else {
     const { payload, error } = await validateAppToken();
     if (!!error || !payload) {
       redirect("/auth/sign-in");
     }
-
     return await action({ payload });
   }
 }

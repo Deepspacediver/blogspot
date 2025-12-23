@@ -42,91 +42,82 @@ export async function POST(req: NextRequest) {
 
   const { email, password } = parsedData.data;
 
-  try {
-    const exisitngUser = await userQueries.findUserByEmail(email);
-    if (!exisitngUser) {
-      return APIResponse({
-        data: { message: "Invalid credentials" },
-        status: 400,
-      });
-    }
-
-    const passwordsMatch = await bcrypt.compare(password, exisitngUser.password);
-    if (!passwordsMatch) {
-      return APIResponse({
-        data: {
-          message: "Passwords do not match from previously created account",
-        },
-        status: 400,
-      });
-    }
-
-    const shouldUpdateRole = exisitngUser.role === UserRole.USER;
-    const user = shouldUpdateRole
-      ? await userQueries.updateUser({
-          id: exisitngUser.id,
-          role: UserRole.ADMIN,
-        })
-      : {
-          email: exisitngUser.email,
-          id: exisitngUser.id,
-          username: exisitngUser.username,
-          role: exisitngUser.role,
-        };
-
-    if (!user) {
-      return APIResponse({
-        data: {
-          message: "Failed to login",
-        },
-        status: 500,
-      });
-    }
-
-    const payload = {
-      userId: user.id,
-      role: user.role,
-      username: user.username,
-      email: user.email,
-    } satisfies JWTHelpers.JWTPayload;
-
-    const [accessToken, refreshToken] = await Promise.all([
-      JWTHelpers.encryptJWT({
-        payload,
-        signingSecret: JWT_API_ACCESS_SIGNING_KEY,
-        expiration: EXPIRATION_15_MINUTES,
-      }),
-      JWTHelpers.encryptJWT({
-        payload,
-        signingSecret: JWT_API_REFRESH_SIGNING_KEY,
-        expiration: EXPIRATION_7_DAYS,
-      }),
-    ]);
-
-    cookieStore
-      .set({
-        value: accessToken,
-        name: "access",
-        secure: true,
-      })
-      .set({
-        value: refreshToken,
-        name: "refresh",
-        httpOnly: true,
-        secure: true,
-      });
+  const exisitngUser = await userQueries.findUserByEmail(email);
+  if (!exisitngUser) {
     return APIResponse({
-      data: {
-        message: "Successfully logged in",
-      },
-      status: 200,
+      data: { message: "Invalid credentials" },
+      status: 400,
     });
-  } catch {
+  }
+
+  const passwordsMatch = await bcrypt.compare(password, exisitngUser.password);
+  if (!passwordsMatch) {
     return APIResponse({
       data: {
-        message: "Failed to create a user",
+        message: "Passwords do not match from previously created account",
+      },
+      status: 400,
+    });
+  }
+
+  const shouldUpdateRole = exisitngUser.role === UserRole.USER;
+  const user = shouldUpdateRole
+    ? await userQueries.updateUser({
+        id: exisitngUser.id,
+        role: UserRole.ADMIN,
+      })
+    : {
+        email: exisitngUser.email,
+        id: exisitngUser.id,
+        username: exisitngUser.username,
+        role: exisitngUser.role,
+      };
+
+  if (!user) {
+    return APIResponse({
+      data: {
+        message: "Failed to login",
       },
       status: 500,
     });
   }
+
+  const payload = {
+    userId: user.id,
+    role: user.role,
+    username: user.username,
+    email: user.email,
+  } satisfies JWTHelpers.JWTPayload;
+
+  const [accessToken, refreshToken] = await Promise.all([
+    JWTHelpers.encryptJWT({
+      payload,
+      signingSecret: JWT_API_ACCESS_SIGNING_KEY,
+      expiration: EXPIRATION_15_MINUTES,
+    }),
+    JWTHelpers.encryptJWT({
+      payload,
+      signingSecret: JWT_API_REFRESH_SIGNING_KEY,
+      expiration: EXPIRATION_7_DAYS,
+    }),
+  ]);
+
+  cookieStore
+    .set({
+      value: accessToken,
+      name: "access",
+      secure: true,
+    })
+    .set({
+      value: refreshToken,
+      name: "refresh",
+      httpOnly: true,
+      secure: true,
+    });
+  return APIResponse({
+    data: {
+      message: "Successfully logged in",
+    },
+    status: 200,
+  });
 }

@@ -9,6 +9,7 @@ export const createPostSchema = z.object({
   // TODO temporary type, adjust once admin FE is done
   content: z.string(),
   shortDescription: z.string().optional(),
-  image: z.file().optional(),
+  // TODO change to imageId
+  image: z.url().optional(),
   isPublished: z.boolean().optional().default(true),
 });

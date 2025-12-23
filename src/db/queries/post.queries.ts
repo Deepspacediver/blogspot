@@ -1,3 +1,4 @@
+import { parseCreateQueryDependencies } from "@/lib/utils";
 import psqlPool from "..";
 import { CommentCK, OptionalReturn, PostCK, UserCK } from "../types";
 
@@ -92,4 +93,27 @@ export const findPosts = async ({ cursor, isOnlyPublished = true }: FindPostsPro
   );
 
   return rows;
+};
+
+type CreatePostProps = {
+  authoId: number;
+  title: string;
+  content: string;
+  shortDescription?: string;
+  // TODO change to imageId
+  // upload file -> create post
+  image?: string;
+  isPublished?: boolean;
+};
+
+export const createPost = async (data: CreatePostProps) => {
+  const { columnsString, values, pgIndicesString } = parseCreateQueryDependencies({ data });
+  return await psqlPool.query(
+    `
+    INSERT INTO posts 
+      COLUMNS (${columnsString})
+      VALUES (${pgIndicesString})
+  `,
+    [values],
+  );
 };

@@ -1,6 +1,7 @@
 "use server";
 
 import psqlPool from "..";
+import { CommentCK, PostCK } from "../types";
 
 type CreateCommentProps = {
   postId: number;
@@ -21,17 +22,36 @@ export const createComment = async ({ postId, userId, content }: CreateCommentPr
 type DeleteCommentProps = {
   userId: number;
   commentId: number;
-  isSuperAdmin?: boolean;
+  canDeleteWithoutAuthorship?: boolean;
 };
 
-export const deleteComment = async ({ userId, commentId, isSuperAdmin = false }: DeleteCommentProps) => {
-  const paramInjectionDeps = isSuperAdmin ? [commentId] : [commentId, userId];
+export const deleteComment = async ({ userId, commentId, canDeleteWithoutAuthorship = false }: DeleteCommentProps) => {
+  const paramInjectionDeps = canDeleteWithoutAuthorship ? [commentId] : [commentId, userId];
   await psqlPool.query(
     `
     DELETE FROM comments 
-      WHERE id = $1 
-      ${!isSuperAdmin ? `AND user_id = $2` : ""};
+      JOIN posts ON comments.post_id = posts.id 
+      WHERE comments.id = $1 
+      ${!canDeleteWithoutAuthorship ? `AND user_id = $2` : ""};
     `,
     paramInjectionDeps,
   );
+};
+
+type GetCommentPostAuthorIdProps = {
+  commentId: number;
+  postId: number;
+};
+
+export const getCommentPostAuthorId = async ({ commentId, postId }: GetCommentPostAuthorIdProps) => {
+  const postAuthor = await psqlPool.query<Pick<PostCK & CommentCK, "authorId" | "userId">>(
+    `
+        SELECT posts.author_id AS authorId, comments.user_id AS userId
+          FROM comments JOIN posts 
+          ON comments.post_id = posts.id
+          WHERE comments.id = $1 AND posts.id = $2;
+    `,
+    [commentId, postId],
+  );
+  return postAuthor?.rows?.[0];
 };

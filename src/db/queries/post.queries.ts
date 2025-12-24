@@ -1,9 +1,9 @@
-import { parseCreateQueryDependencies } from "@/lib/utils";
+import { parseCreateQueryDependencies, parseUpdateQueryDependencies } from "@/lib/utils";
 import psqlPool from "..";
 import { CommentCK, OptionalReturn, PostCK, UserCK } from "../types";
 
 export type PostWithAuthorReturn = Pick<UserCK, "username" | "email" | "pictureUrl"> &
-  Pick<PostCK, "title" | "shortDescription" | "content" | "image" | "createdAt">;
+  Pick<PostCK, "title" | "shortDescription" | "content" | "image" | "createdAt" | "authorId">;
 
 type FindPostProps = {
   id: number;
@@ -17,6 +17,7 @@ export const findPost = async ({ id, isOnlyPublished = true }: FindPostProps) =>
       users.username,
       users.email,
       users.picture_url AS "pictureUrl",
+      posets.author_id AS authorId,
       posts.title,
       posts.content,
       posts.created_at as "createdAt",
@@ -115,5 +116,44 @@ export const createPost = async (data: CreatePostProps) => {
       VALUES (${pgIndicesString})
   `,
     [values],
+  );
+};
+
+type UpdatePostProps = {
+  id: number;
+  title?: string;
+  content?: string;
+  shortDescription?: string;
+  image?: string;
+  isPublished?: boolean;
+};
+
+// TODO how does paremetrized depdendecies handle boolean values
+// (should it be parsed to "TRUE"?)
+
+export const updatePost = async (data: UpdatePostProps) => {
+  const { columnNames, columnValues, endIndex } = parseUpdateQueryDependencies(data);
+
+  return (
+    await psqlPool.query(`
+      UPDATE posts 
+      SET ${columnNames}
+      WHERE id = $${endIndex + 1};
+    `),
+    [columnValues]
+  );
+};
+
+type DeletePostProps = {
+  id: number;
+};
+
+export const deletePost = async ({ id }: DeletePostProps) => {
+  await psqlPool.query(
+    `
+      DELETE FROM posts
+      WHERE id = $1;
+    `,
+    [id],
   );
 };

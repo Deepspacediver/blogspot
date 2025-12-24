@@ -13,3 +13,11 @@ export const createPostSchema = z.object({
   image: z.url().optional(),
   isPublished: z.boolean().optional().default(true),
 });
+
+export const updatePostSchema = z.object({
+  title: z.string().min(3).optional(),
+  content: z.string().optional(),
+  shortDescription: z.string().optional(),
+  image: z.url().optional(),
+  isPublished: z.boolean().optional(),
+});

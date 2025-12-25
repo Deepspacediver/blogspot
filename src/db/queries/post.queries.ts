@@ -17,7 +17,7 @@ export const findPost = async ({ id, isOnlyPublished = true }: FindPostProps) =>
       users.username,
       users.email,
       users.picture_url AS "pictureUrl",
-      posets.author_id AS authorId,
+      posts.author_id AS authorId,
       posts.title,
       posts.content,
       posts.created_at as "createdAt",

@@ -10,6 +10,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  headers: async function () {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: process.env.ADMIN_DASHBOARD_URL!,
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

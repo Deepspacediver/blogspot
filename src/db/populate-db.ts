@@ -11,7 +11,7 @@ export const populateDb = async () => {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT null,
         picture_url TEXT,
-        role TEXT NOT NULL DEFAULT 'USER' CHECK (role IN ('ADMIN', 'USER'))
+        role TEXT NOT NULL DEFAULT 'USER' CHECK (role IN ('SUPER_ADMIN', 'ADMIN', 'USER'))
       );
 
       CREATE TABLE IF NOT EXISTS posts (

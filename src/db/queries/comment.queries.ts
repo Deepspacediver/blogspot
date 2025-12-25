@@ -27,15 +27,11 @@ type DeleteCommentProps = {
 
 export const deleteComment = async ({ userId, commentId, canDeleteWithoutAuthorship = false }: DeleteCommentProps) => {
   const paramInjectionDeps = canDeleteWithoutAuthorship ? [commentId] : [commentId, userId];
-  await psqlPool.query(
-    `
-    DELETE FROM comments 
-      JOIN posts ON comments.post_id = posts.id 
-      WHERE comments.id = $1 
-      ${!canDeleteWithoutAuthorship ? `AND user_id = $2` : ""};
-    `,
-    paramInjectionDeps,
-  );
+  const query = `DELETE FROM comments 
+                  USING posts WHERE comments.post_id = posts.id
+                  AND comments.id = $1 
+                  ${!canDeleteWithoutAuthorship ? `AND comments.user_id = $2` : ""}`;
+  await psqlPool.query(query, paramInjectionDeps);
 };
 
 type GetCommentPostAuthorIdProps = {

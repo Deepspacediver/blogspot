@@ -6,8 +6,12 @@ import * as postModels from "@/models/post.models";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
-  return protectedAction(async ({ body }) => {
-    const parsedData = postModels.findPostsSchema.safeParse(body);
+  return protectedAction(async ({}) => {
+    const searchParams = req.nextUrl.searchParams;
+    const cursor = searchParams.get("cursor");
+    const parsedData = postModels.findPostsSchema.safeParse({
+      cursor,
+    });
     if (!parsedData.success) {
       return APIResponse({
         data: {

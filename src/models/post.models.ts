@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const findPostsSchema = z.object({
-  cursor: z.number().min(1).optional(),
+  cursor: z.coerce.number().min(1).optional(),
 });
 
 export const createPostSchema = z.object({

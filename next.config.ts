@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
             key: "Access-Control-Allow-Origin",
             value: process.env.ADMIN_DASHBOARD_URL!,
           },
+          {
+            key: "Access-Control-Allow-Credentials",
+            value: "true",
+          },
+          { key: "Access-Control-Allow-Methods", value: "GET, DELETE, PATCH, PUT, POST" },
+          { key: "Access-Control-Allow-Headers", value: "content-type" },
         ],
       },
     ];

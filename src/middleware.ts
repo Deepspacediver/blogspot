@@ -89,6 +89,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // matcher: '/about/:path*',
+  matcher: "/((?!api|auth|_next/static|_next/image).*)",
   runtime: "nodejs",
 };

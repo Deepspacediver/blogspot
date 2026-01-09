@@ -74,7 +74,7 @@ type ActionProps = {
 export async function protectedAction<T>(action: ({ payload, body }: ActionProps) => Promise<T>, req?: NextRequest): Promise<T> {
   if (!!req) {
     const { payload, error } = await validateAPIToken();
-    const body = await req.json();
+    const body = req.method === "GET" ? {} : await req.json();
     if (error || !payload) {
       return APIResponse({
         data: {

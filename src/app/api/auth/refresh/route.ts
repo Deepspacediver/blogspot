@@ -12,7 +12,7 @@ export async function POST() {
 
   if (!refreshCookie) {
     clearJWTCookies({ cookieStore, isAPI: true });
-    return APIResponse({ data: { message: "Missing refresh token" }, status: 401 });
+    return APIResponse({ data: { message: "Missing refresh token" }, status: 400 });
   }
 
   try {
@@ -23,14 +23,14 @@ export async function POST() {
 
     if (!payload) {
       clearJWTCookies({ cookieStore, isAPI: true });
-      return APIResponse({ res: Response, data: { message: "Invalid refresh token" }, status: 401 });
+      return APIResponse({ res: Response, data: { message: "Invalid refresh token" }, status: 400 });
     }
 
     const user = await userQueries.findUserById(payload.userId);
 
     if (!user) {
       clearJWTCookies({ cookieStore, isAPI: true });
-      return APIResponse({ data: { message: "Invlalid refresh token" }, status: 401 });
+      return APIResponse({ data: { message: "User not found" }, status: 404 });
     }
     const newPayload = { userId: user.id, email: user.email, username: user.username, role: user.role } satisfies JWTPayload;
     const [newAccessJWT, newRefreshJWT] = await Promise.all([

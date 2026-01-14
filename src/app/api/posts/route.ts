@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     const posts = await postQueries.findPosts({ cursor: parsedData.data.cursor });
     return APIResponse({
-      data: { posts },
+      data: posts,
     });
   }, req);
 }

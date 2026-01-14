@@ -50,14 +50,9 @@ type APIResponseProps<T> = {
 
 // TODO default might not work
 export const APIResponse = <T = null>({ res = Response, data, status = 200 }: APIResponseProps<T>) => {
-  return res.json(
-    {
-      data: data || null,
-    },
-    {
-      status,
-    },
-  );
+  return res.json(data, {
+    status,
+  });
 };
 
 const UPPER_CASE_LETTER_REGEX = /(?=[A-Z])/;

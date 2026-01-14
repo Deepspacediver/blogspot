@@ -14,6 +14,6 @@ export async function POST() {
   clearJWTCookies({ cookieStore, isAPI: true });
 
   return APIResponse({
-    data: "ok",
+    data: { message: "ok" },
   });
 }

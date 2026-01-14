@@ -20,9 +20,7 @@ export async function GET(req: NextRequest) {
 
     return APIResponse({
       status: 200,
-      data: {
-        user: userData,
-      },
+      data: userData,
     });
   }, req);
 }

@@ -23,9 +23,10 @@ export async function GET(req: NextRequest, { params }: PostParams) {
     const comments = postQueries.findCommentsForPost({
       id: parsedId,
     });
+
     return APIResponse({
       data: {
-        post,
+        ...post,
         comments,
       },
       status: 200,

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const accessCookie = cookieStore.get("access")?.value;
 
   if (accessCookie) {
-    return APIResponse({ data: { message: "Already logged in" }, status: 400 });
+    return APIResponse({ data: { message: "Already logged in" }, status: 200 });
   }
 
   if (!parsedData.success) {

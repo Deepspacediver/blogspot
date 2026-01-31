@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       data: {
         message: "Already logged in",
       },
-      status: 400,
+      status: 200,
     });
   }
 

@@ -32,6 +32,7 @@ export type Post = {
   author_id: number;
   created_at: Date;
   updated_at?: Date;
+  // TODO refactor so it references id of file ( for main image)
   image?: string;
   is_published: boolean;
 };
@@ -39,7 +40,7 @@ export type Post = {
 export type File = {
   id: number;
   name: string;
-  post_id: number;
+  post_id?: number;
   created_at: Date;
   size: number;
 };

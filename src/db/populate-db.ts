@@ -29,7 +29,7 @@ export const populateDb = async () => {
       CREATE TABLE IF NOT EXISTS files (
         id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
         name VARCHAR(255) NOT NULL UNIQUE,
-        post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
         size INTEGER,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );

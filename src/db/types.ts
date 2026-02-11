@@ -43,6 +43,8 @@ export type File = {
   post_id?: number;
   created_at: Date;
   size: number;
+  url: string;
+  cloudinary_id: string;
 };
 
 type SnakeToCamelCase<T extends string> = T extends `_${infer U}`

@@ -32,6 +32,8 @@ export const populateDb = async () => {
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
         size INTEGER,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        url TEXT,
+        cloudinary_id TEXT,
       );
 
       CREATE TABLE IF NOT EXISTS comments (

@@ -98,13 +98,11 @@ export const findPosts = async ({ cursor, isOnlyPublished = true }: FindPostsPro
 };
 
 type CreatePostProps = {
-  authoId: number;
+  authorId: number;
   title: string;
-  content: string;
+  content: JSON;
   shortDescription?: string;
-  // TODO change to imageId
-  // upload file -> create post
-  image?: string;
+  headerImageId?: number;
   isPublished?: boolean;
 };
 
@@ -123,9 +121,9 @@ export const createPost = async (data: CreatePostProps) => {
 type UpdatePostProps = {
   id: number;
   title?: string;
-  content?: string;
+  content?: JSON;
   shortDescription?: string;
-  image?: string;
+  headerImageId?: number;
   isPublished?: boolean;
 };
 
@@ -149,6 +147,7 @@ type DeletePostProps = {
   id: number;
 };
 
+// TODO delete all images from post
 export const deletePost = async ({ id }: DeletePostProps) => {
   await psqlPool.query(
     `

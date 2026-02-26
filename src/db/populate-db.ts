@@ -10,25 +10,25 @@ export const populateDb = async () => {
         password VARCHAR(255),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT null,
-        picture_url TEXT,
+        picture_id INTEGER REFERENCES files(id) ON DELETE CASCADE,
         role TEXT NOT NULL DEFAULT 'USER' CHECK (role IN ('SUPER_ADMIN', 'ADMIN', 'USER'))
       );
 
       CREATE TABLE IF NOT EXISTS posts (
         id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
         title VARCHAR(255) NOT NULL,
-        content TEXT,
+        content JSONB,
         short_description VARCHAR(300),
         author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         is_published BOOLEAN NOT NULL DEFAULT FALSE,
-        image TEXT,
+        header_image_id INTEGER REFERENCES files(id) ON DELETE CASCADE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT null
       );
 
       CREATE TABLE IF NOT EXISTS files (
         id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-        name VARCHAR(255) NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
         size INTEGER,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

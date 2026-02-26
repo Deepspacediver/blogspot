@@ -5,12 +5,10 @@ export const findPostsSchema = z.object({
 });
 
 export const createPostSchema = z.object({
-  title: z.string().min(3),
-  // TODO temporary type, adjust once admin FE is done
-  content: z.string(),
+  title: z.string().min(1),
+  content: z.looseObject({}),
   shortDescription: z.string().optional(),
-  // TODO change to imageId
-  image: z.url().optional(),
+  headerImageId: z.number().optional(),
   isPublished: z.boolean().optional().default(true),
 });
 
@@ -18,6 +16,6 @@ export const updatePostSchema = z.object({
   title: z.string().min(3).optional(),
   content: z.string().optional(),
   shortDescription: z.string().optional(),
-  image: z.url().optional(),
+  headerImageId: z.url().optional(),
   isPublished: z.boolean().optional(),
 });

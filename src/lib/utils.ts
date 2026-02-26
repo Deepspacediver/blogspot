@@ -57,12 +57,18 @@ export const APIResponse = <T = null>({ res = Response, data, status = 200 }: AP
 
 const UPPER_CASE_LETTER_REGEX = /(?=[A-Z])/;
 
-export const stringCamelCaseToKebabCase = (key: string) => {
+export const stringCamelCaseToSnakeCase = (key: string) => {
   return key.split(UPPER_CASE_LETTER_REGEX).join("_").toLowerCase();
 };
 
-export const parseCreateQueryDependencies = <T extends Record<PropertyKey, T[keyof T]>>(data: T) => {
-  const dataWithoutUndefined = Object.entries(data).filter(([_, val]) => val !== undefined);
+export const parseCreateQueryDependencies = <T extends Record<PropertyKey, T[keyof T]>, P extends Record<keyof T, string>>({
+  data,
+  propertyMap,
+}: {
+  data: T;
+  propertyMap?: P;
+}) => {
+  const dataWithoutUndefined = Object.entries(data).filter(([, val]) => val !== undefined);
   const { columns, values, pgIndices } = dataWithoutUndefined.reduce<{
     columns: string[];
     pgIndices: `$${number}`[];
@@ -70,10 +76,11 @@ export const parseCreateQueryDependencies = <T extends Record<PropertyKey, T[key
   }>(
     (acc, curr, i) => {
       const [key, val] = curr;
-      const kebabCaseKey = stringCamelCaseToKebabCase(key);
+      const correctKey = propertyMap && propertyMap[key] ? propertyMap[key] : key;
+      const snakeCaseKey = stringCamelCaseToSnakeCase(correctKey);
       const pgIndex = `$${i + 1}` satisfies `$${number}`;
       acc.values.push(val);
-      acc.columns.push(kebabCaseKey);
+      acc.columns.push(snakeCaseKey);
       acc.pgIndices.push(pgIndex);
       return acc;
     },

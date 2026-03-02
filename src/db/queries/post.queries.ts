@@ -100,7 +100,7 @@ export const findPosts = async ({ cursor, isOnlyPublished = true }: FindPostsPro
 type CreatePostProps = {
   authorId: number;
   title: string;
-  content: JSON;
+  content: object;
   shortDescription?: string;
   headerImageId?: number;
   isPublished?: boolean;
@@ -108,20 +108,16 @@ type CreatePostProps = {
 
 export const createPost = async (data: CreatePostProps) => {
   const { columnsString, values, pgIndicesString } = parseCreateQueryDependencies({ data });
-  return await psqlPool.query(
-    `
-    INSERT INTO posts 
-      COLUMNS (${columnsString})
-      VALUES (${pgIndicesString})
-  `,
-    [values],
-  );
+  const query = `
+    INSERT INTO posts (${columnsString})
+    VALUES (${pgIndicesString})`;
+  return await psqlPool.query(query, values);
 };
 
 type UpdatePostProps = {
   id: number;
   title?: string;
-  content?: JSON;
+  content?: object;
   shortDescription?: string;
   headerImageId?: number;
   isPublished?: boolean;

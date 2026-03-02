@@ -48,12 +48,12 @@ export async function POST(req: NextRequest) {
         status: 403,
       });
     }
-    const { title, content, shortDescription, image, isPublished } = parsedData.data;
+    const { title, content, shortDescription, headerImageId, isPublished } = parsedData.data;
     await postQueries.createPost({
-      authoId: payload.userId,
+      authorId: payload.userId,
       title,
       content,
-      image,
+      headerImageId,
       shortDescription,
       isPublished,
     });

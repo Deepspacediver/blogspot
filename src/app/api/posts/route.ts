@@ -6,11 +6,13 @@ import * as postModels from "@/models/post.models";
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
-  return protectedAction(async ({}) => {
+  return protectedAction(async ({ }) => {
     const searchParams = req.nextUrl.searchParams;
-    const cursor = searchParams.get("cursor");
+    const cursor = searchParams.get("cursor") || 0;
+    const state = searchParams.get("state");
     const parsedData = postModels.findPostsSchema.safeParse({
       cursor,
+      state,
     });
     if (!parsedData.success) {
       return APIResponse({
@@ -21,7 +23,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const posts = await postQueries.findPosts({ cursor: parsedData.data.cursor });
+    const posts = await postQueries.findPosts({
+      cursor: parsedData.data.cursor,
+      state: parsedData.data.state,
+    });
     return APIResponse({
       data: posts,
     });
@@ -48,14 +53,15 @@ export async function POST(req: NextRequest) {
         status: 403,
       });
     }
-    const { title, content, shortDescription, headerImageId, isPublished } = parsedData.data;
+
+    const { title, content, shortDescription, headerImageId, state } = parsedData.data;
     await postQueries.createPost({
       authorId: payload.userId,
       title,
       content,
       headerImageId,
       shortDescription,
-      isPublished,
+      state,
     });
 
     return APIResponse({

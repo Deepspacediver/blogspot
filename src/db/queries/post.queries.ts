@@ -1,16 +1,23 @@
 import { parseCreateQueryDependencies, parseUpdateQueryDependencies } from "@/lib/utils";
 import psqlPool from "..";
-import { CommentCK, OptionalReturn, PostCK, UserCK } from "../types";
+import { CommentCK, OptionalReturn, PostCK, PostState, UserCK } from "../types";
 
 export type PostWithAuthorReturn = Pick<UserCK, "username" | "email" | "pictureUrl"> &
   Pick<PostCK, "title" | "shortDescription" | "content" | "image" | "createdAt" | "authorId">;
 
 type FindPostProps = {
   id: number;
-  isOnlyPublished?: boolean;
+  state?: PostState | null;
 };
 
-export const findPost = async ({ id, isOnlyPublished = true }: FindPostProps) => {
+export const findPost = async ({ id, state = PostState.published }: FindPostProps) => {
+  const conditions = ["posts.id = $1"];
+  const values: (string | number)[] = [id];
+  if (state) {
+    conditions.push("posts.state = $2");
+    values.push(state);
+  }
+  const whereClause = conditions.join(" AND ");
   const postWithAuth = await psqlPool.query<OptionalReturn<PostWithAuthorReturn>>(
     `
     SELECT 
@@ -24,10 +31,9 @@ export const findPost = async ({ id, isOnlyPublished = true }: FindPostProps) =>
       posts.short_description as "shortDescription"
     FROM posts
     JOIN users ON posts.author_id = users.id
-    WHERE posts.id = $1 
-    ${isOnlyPublished ? "AND posts.is_published IS TRUE" : ""};
+    WHERE ${whereClause};
     `,
-    [id],
+    values,
   );
 
   return postWithAuth?.rows?.[0];
@@ -38,7 +44,6 @@ export type CommentWithAuthor = Pick<UserCK, "username" | "email" | "pictureUrl"
 
 type FindCommentsForPostProps = {
   id: number;
-  isOnlyPublished?: boolean;
 };
 export const findCommentsForPost = async ({ id }: FindCommentsForPostProps) => {
   const commentsWithAuthors = await psqlPool.query<CommentWithAuthor>(
@@ -64,37 +69,43 @@ export type FindPostsReturn = Pick<PostCK, "id" | "title" | "createdAt" | "image
   Pick<UserCK, "email" | "pictureUrl" | "username">;
 
 type FindPostsProps = {
-  cursor?: number;
-  isOnlyPublished?: boolean;
+  cursor?: number | null;
+  state?: PostState | null;
 };
 
-export const findPosts = async ({ cursor, isOnlyPublished = true }: FindPostsProps) => {
-  // TODO can this be more readable?
-  const paramInjectionDependency = cursor ? [cursor] : [];
-  const { rows } = await psqlPool.query<FindPostsReturn>(
+export const findPosts = async ({ cursor = 0, state = PostState.published }: FindPostsProps) => {
+
+  const stateParams = !state ? [] : state === PostState.all ? [PostState.draft, PostState.published] : [state];
+  const paramInjectionDependency = [cursor, ...stateParams];
+  const indicesToSkip = paramInjectionDependency.length - stateParams.length;
+  const stateParamIndexList = paramInjectionDependency.flatMap((_, i) => {
+    return i < indicesToSkip ? [] : [`$${i + 1}`];
+  });
+
+  const data = await psqlPool.query<FindPostsReturn>(
     `
       SELECT 
         posts.id,
         posts.title,
-        posts.image,
+        posts.header_image_id as "headerImageId",
         posts.created_at AS "createdAt",
-        posts.is_published as "isPublished",
+        posts.state,
         users.email,
         users.username,
-        users.picture_url AS "pictureUrl"
+        files.url AS "pictureUrl"
       FROM posts 
       JOIN users ON posts.author_id = users.id
+      LEFT JOIN files ON users.picture_id = files.id 
       WHERE 
-        ${cursor ? "posts.id > $1 AND" : ""}
-        ${isOnlyPublished ? "posts.is_published IS TRUE AND" : ""}
-        posts.is_published IS TRUE
+        posts.id > $1 AND
+        posts.state IN (${stateParamIndexList.join(", ")})
       ORDER BY posts.id
       LIMIT 5;
       `,
     [...paramInjectionDependency],
   );
 
-  return rows;
+  return data.rows;
 };
 
 type CreatePostProps = {
@@ -103,7 +114,7 @@ type CreatePostProps = {
   content: object;
   shortDescription?: string;
   headerImageId?: number;
-  isPublished?: boolean;
+  state?: PostState;
 };
 
 export const createPost = async (data: CreatePostProps) => {
@@ -120,7 +131,7 @@ type UpdatePostProps = {
   content?: object;
   shortDescription?: string;
   headerImageId?: number;
-  isPublished?: boolean;
+  state?: PostState;
 };
 
 // TODO how does paremetrized depdendecies handle boolean values

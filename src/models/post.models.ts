@@ -1,7 +1,9 @@
+import { PostState } from "@/db/types";
 import z from "zod";
 
 export const findPostsSchema = z.object({
-  cursor: z.coerce.number().min(1).optional(),
+  cursor: z.coerce.number().min(0).nullable().optional(),
+  state: z.enum(PostState).nullable().optional().default(PostState.published),
 });
 
 export const createPostSchema = z.object({
@@ -9,7 +11,7 @@ export const createPostSchema = z.object({
   content: z.looseObject({}),
   shortDescription: z.string().optional(),
   headerImageId: z.number().optional(),
-  isPublished: z.boolean().optional().default(true),
+  state: z.enum(PostState).optional().default(PostState.published),
 });
 
 export const updatePostSchema = z.object({
@@ -17,5 +19,5 @@ export const updatePostSchema = z.object({
   content: z.looseObject({}).optional(),
   shortDescription: z.string().optional(),
   headerImageId: z.number().optional(),
-  isPublished: z.boolean().optional(),
+  state: z.enum(PostState).optional(),
 });

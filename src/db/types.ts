@@ -24,6 +24,14 @@ export type Comment = {
   updated_at?: Date;
 };
 
+export const PostState = {
+  published: "published",
+  draft: "draft",
+  all: "all",
+} as const;
+
+export type PostState = (typeof PostState)[keyof typeof PostState];
+
 export type Post = {
   id: number;
   title: string;
@@ -34,7 +42,7 @@ export type Post = {
   updated_at?: Date;
   // TODO refactor so it references id of file ( for main image)
   image?: string;
-  is_published: boolean;
+  state: PostState;
 };
 
 export type File = {

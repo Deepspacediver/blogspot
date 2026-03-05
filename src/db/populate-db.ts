@@ -3,6 +3,9 @@ import dbClient from ".";
 export const populateDb = async () => {
   try {
     await dbClient.query(`
+
+      CREATE TYPE state AS ENUM('published', 'draft');
+
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
         email VARCHAR(255) UNIQUE,
@@ -20,7 +23,7 @@ export const populateDb = async () => {
         content JSONB,
         short_description VARCHAR(300),
         author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        is_published BOOLEAN NOT NULL DEFAULT FALSE,
+        state STATE DEFAULT 'draft' NOT NULL,
         header_image_id INTEGER REFERENCES files(id) ON DELETE CASCADE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT null
@@ -31,7 +34,7 @@ export const populateDb = async () => {
         name VARCHAR(255) NOT NULL,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
         size INTEGER,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         url TEXT,
         cloudinary_id TEXT,
       );

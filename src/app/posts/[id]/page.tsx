@@ -11,7 +11,7 @@ type PostPageProps = {
 
 // TODO this is only for rendering & testing
 // this would be moved to seperate wrapper and loading state would be handled here
-// additionaly content & shortDesciription would be rendered as html, not simple text
+// additionaly content would be rendered as html, not simple text
 export default async function Page({ params }: PostPageProps) {
   const { id } = await params;
   const parsedId = +id;

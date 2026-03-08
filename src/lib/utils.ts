@@ -11,7 +11,7 @@ export const isExpired = (date: Date | number) => {
   return new Date(date).valueOf() - new Date().valueOf() < 0;
 };
 
-export const getErrorDetails = ({ error, defaultMessage }: { error: unknown; defaultMessage?: string }) => {
+export const getErrorDetails = ({ error, defaultMessage }: { error: unknown; defaultMessage?: string; }) => {
   const genericMessage = defaultMessage || "Data request has failed.";
   return error instanceof Error ? error.message : genericMessage;
 };
@@ -48,7 +48,6 @@ type APIResponseProps<T> = {
   status?: number;
 };
 
-// TODO default might not work
 export const APIResponse = <T = null>({ res = Response, data, status = 200 }: APIResponseProps<T>) => {
   return res.json(data, {
     status,
@@ -108,4 +107,10 @@ export const parseUpdateQueryDependencies = <T extends Record<PropertyKey, T[key
     columnValues,
     endIndex,
   };
+};
+
+export const logger = (data: unknown) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.dir({ data }, { depth: null });
+  }
 };

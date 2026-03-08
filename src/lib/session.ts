@@ -5,7 +5,7 @@ import { UserRole } from "@/db/types";
 import * as jose from "jose";
 import { validateAPIToken, validateAppToken } from "./auth-dal";
 import { redirect } from "next/navigation";
-import { APIResponse, getErrorDetails } from "./utils";
+import { APIResponse, getErrorDetails, logger } from "./utils";
 import { NextRequest } from "next/server";
 
 const ISSUER = "blogspot";
@@ -19,7 +19,7 @@ export type JWTPayload = {
 };
 
 // exp should always be present since setExpirationTime is invoked every time
-export type JWT = JWTPayload & { exp: number };
+export type JWT = JWTPayload & { exp: number; };
 
 type EncryptJWTProps = {
   payload: JWTPayload;
@@ -78,6 +78,7 @@ export async function protectedAction<T>(action: ({ payload, body }: ActionProps
     const isFormDataContentType = contentTypeHeader?.includes("multipart/form-data");
     const body = req.method === "GET" ? {} : isFormDataContentType ? await req.formData() : await req.json();
     if (error || !payload) {
+      logger({ error });
       return APIResponse({
         data: {
           message: "Unauthorized",
@@ -87,7 +88,8 @@ export async function protectedAction<T>(action: ({ payload, body }: ActionProps
     }
     try {
       return await action({ payload, body });
-    } catch {
+    } catch (e) {
+      logger({ error });
       return APIResponse({
         data: {
           message: "Internal Server Error",

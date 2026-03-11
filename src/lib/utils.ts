@@ -114,3 +114,14 @@ export const logger = (data: unknown) => {
     console.dir({ data }, { depth: null });
   }
 };
+type ParseFileForUploadProps = {
+  file: File;
+};
+export async function parseFileForUpload({ file }: ParseFileForUploadProps) {
+  const fileBuffer = await file.arrayBuffer();
+  const mimeType = file.type;
+  const encoding = "base64";
+  const base64Data = Buffer.from(fileBuffer).toString("base64");
+  const fileUri = `data:${mimeType};${encoding},${base64Data}`;
+  return { fileUri };
+}

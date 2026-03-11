@@ -3,17 +3,23 @@ import { protectedAction } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { cloudinaryClient } from "@/config/cloudinary.config";
 import * as fileQueries from "@/db/queries/file.queries";
-import { APIResponse } from "@/lib/utils";
+import { APIResponse, parseFileForUpload } from "@/lib/utils";
+import { uploadFileSchema } from "@/models/file.models";
 
 export async function POST(req: NextRequest) {
   return protectedAction(async ({ body }) => {
-    const file = (body as FormData)?.get("file") as File;
+    const parsedData = uploadFileSchema.safeParse(body);
+    if (!parsedData.success) {
+      return APIResponse({
+        status: 400,
+        data: {
+          message: "Invalid request data"
+        }
+      });
+    }
+    const { file } = parsedData.data;
 
-    const fileBuffer = await file.arrayBuffer();
-    const mimeType = file.type;
-    const encoding = "base64";
-    const base64Data = Buffer.from(fileBuffer).toString("base64");
-    const fileUri = `data:${mimeType};${encoding},${base64Data}`;
+    const { fileUri } = await parseFileForUpload({ file });
 
     const res = await cloudinaryClient.uploader.upload(fileUri, {
       filename_override: file.name,

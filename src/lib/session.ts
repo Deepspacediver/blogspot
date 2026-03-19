@@ -69,7 +69,7 @@ export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KE
 };
 type ActionProps = {
   payload: JWTPayload;
-  body?: unknown;
+  body?: Record<PropertyKey, unknown>;
 };
 export async function protectedAction<T>(action: ({ payload, body }: ActionProps) => Promise<T>, req?: NextRequest): Promise<T> {
   if (!!req) {
@@ -88,7 +88,7 @@ export async function protectedAction<T>(action: ({ payload, body }: ActionProps
     }
     try {
       return await action({ payload, body });
-    } catch (e) {
+    } catch (error) {
       logger({ error });
       return APIResponse({
         data: {

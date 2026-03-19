@@ -1,5 +1,7 @@
+import { cloudinaryClient } from "@/config/cloudinary.config";
 import psqlPool from "..";
 import { FileCK } from "../types";
+import { parseFileForUpload } from "@/lib/utils";
 
 type CreateFileProps = {
   url: string;
@@ -21,4 +23,26 @@ export const createFile = async ({ url, cloudinaryId, name, size }: CreateFilePr
   );
 
   return file?.rows?.[0];
+};
+
+
+type UploadFileToCloudinaryProps = {
+  file: File;
+};
+export async function uploadFileToCloudinary({ file }: UploadFileToCloudinaryProps) {
+  const { fileUri } = await parseFileForUpload({ file });
+  const response = await cloudinaryClient.uploader.upload(fileUri, {
+    filename_override: file.name,
+    folder: "blogspot",
+    use_filename: true
+  });
+  return { ...response, size: file.size };
+}
+type DeleteFileProps = {
+  id: number;
+};
+
+export const deleteFile = async ({ id }: DeleteFileProps) => {
+  await psqlPool.query(`
+    DELETE FROM files WHERE id = $1`, [id]);
 };

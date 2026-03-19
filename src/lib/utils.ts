@@ -98,10 +98,10 @@ export const parseCreateQueryDependencies = <T extends Record<PropertyKey, T[key
 export const parseUpdateQueryDependencies = <T extends Record<PropertyKey, T[keyof T]>>(data: T) => {
   const columnNames = Object.entries(data)
     .filter(([_, val]) => val !== undefined)
-    .map(([key], i) => `${key} = $${i + 1}`)
+    .map(([key], i) => `${stringCamelCaseToSnakeCase(key)} = $${i + 1}`)
     .join(", ");
   const columnValues = [...Object.entries(data).flatMap(([_, val]) => (!!val ? [val] : []))];
-  const endIndex = columnNames.length;
+  const endIndex = columnValues.length;
   return {
     columnNames,
     columnValues,

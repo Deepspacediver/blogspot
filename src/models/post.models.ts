@@ -8,16 +8,16 @@ export const findPostsSchema = z.object({
 
 export const createPostSchema = z.object({
   title: z.string().min(1),
-  content: z.looseObject({}),
+  content: z.string().transform((value) => JSON.parse(value)).pipe(z.looseObject({})),
   shortDescription: z.string().optional(),
-  headerImageId: z.number().optional(),
+  image: z.file().optional(),
   state: z.enum(PostState).optional().default(PostState.published),
 });
-
 export const updatePostSchema = z.object({
+  id: z.coerce.number(),
   title: z.string().min(1).optional(),
-  content: z.looseObject({}).optional(),
+  content: z.string().transform((value) => JSON.parse(value)).pipe(z.looseObject({})).optional(),
   shortDescription: z.string().optional(),
-  headerImageId: z.number().optional(),
-  state: z.enum(PostState).optional(),
+  image: z.file().optional(),
+  state: z.enum(PostState).exclude([PostState.all]).optional(),
 });

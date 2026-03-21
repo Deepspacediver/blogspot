@@ -11,7 +11,7 @@ export type User = {
   password: string;
   created_at: Date;
   updated_at?: Date;
-  picture_url?: string;
+  picture_id?: number;
   role: UserRole;
 };
 
@@ -40,8 +40,7 @@ export type Post = {
   author_id: number;
   created_at: Date;
   updated_at?: Date;
-  // TODO refactor so it references id of file ( for main image)
-  image?: string;
+  header_image_id?: number;
   state: PostState;
 };
 
@@ -58,15 +57,15 @@ export type File = {
 type SnakeToCamelCase<T extends string> = T extends `_${infer U}`
   ? SnakeToCamelCase<Lowercase<U>>
   : T extends `_${infer U}_${infer P}`
-    ? `${Lowercase<U>}${Capitalize<SnakeToCamelCase<P>>}`
-    : T extends `${infer U}_${infer P}`
-      ? `${U}${SnakeToCamelCase<Capitalize<P>>}`
-      : T;
+  ? `${Lowercase<U>}${Capitalize<SnakeToCamelCase<P>>}`
+  : T extends `${infer U}_${infer P}`
+  ? `${U}${SnakeToCamelCase<Capitalize<P>>}`
+  : T;
 
 export type DeepCamelCaseKeys<T extends Record<string, unknown>> = {
   [U in keyof T as SnakeToCamelCase<U extends string & keyof T ? U : never>]: T[U] extends Record<string, unknown>
-    ? DeepCamelCaseKeys<T[U]>
-    : T[U];
+  ? DeepCamelCaseKeys<T[U]>
+  : T[U];
 };
 
 export type UserCK = DeepCamelCaseKeys<User>;

@@ -3,15 +3,17 @@ import { NextRequest } from "next/server";
 import * as postQueries from "@/db/queries/post.queries";
 import { APIResponse } from "@/lib/utils";
 import * as postModels from "@/models/post.models";
-import { UserRole } from "@/db/types";
+import { PostState, UserRole } from "@/db/types";
+import { createFile, deleteFile, uploadFileToCloudinary } from "@/db/queries/file.queries";
 
-type PostParams = { params: Promise<{ id: string }> };
+type PostParams = { params: Promise<{ id: string; }>; };
 
 export async function GET(req: NextRequest, { params }: PostParams) {
   return protectedAction(async () => {
     const { id } = await params;
     const parsedId = +id;
-    const post = postQueries.findPost({ id: parsedId, isOnlyPublished: false });
+    const state = req.nextUrl.searchParams.get("state") as PostState;
+    const post = await postQueries.findPost({ id: parsedId, state });
     if (!post) {
       return APIResponse({
         data: {
@@ -20,14 +22,14 @@ export async function GET(req: NextRequest, { params }: PostParams) {
         status: 404,
       });
     }
-    const comments = postQueries.findCommentsForPost({
+    const comments = await postQueries.findCommentsForPost({
       id: parsedId,
     });
 
     return APIResponse({
       data: {
         ...post,
-        comments,
+        comments: comments || [],
       },
       status: 200,
     });
@@ -37,8 +39,7 @@ export async function GET(req: NextRequest, { params }: PostParams) {
 export async function PATCH(req: NextRequest, { params }: PostParams) {
   return protectedAction(async ({ body }) => {
     const { id } = await params;
-    const parsedId = +id;
-    const parsedData = postModels.updatePostSchema.safeParse(body);
+    const parsedData = postModels.updatePostSchema.safeParse({ ...body, id });
     if (!parsedData.success) {
       return APIResponse({
         data: {
@@ -48,9 +49,32 @@ export async function PATCH(req: NextRequest, { params }: PostParams) {
       });
     }
 
+    const existingPost = await postQueries.findPost({ id: parsedData.data.id });
+    if (!existingPost) {
+      return APIResponse({
+        status: 404,
+        data: {
+          message: "Could not find a post",
+        },
+      });
+    }
+
+    let headerImageId;
+    if (parsedData.data.image) {
+      const { url, public_id, original_filename, size } = await uploadFileToCloudinary({ file: parsedData.data.image });
+      const { id } = await createFile({ url, cloudinaryId: public_id, name: original_filename, size });
+      headerImageId = id;
+      if (existingPost.headerImageId) {
+        console.log("deleting");
+        await deleteFile({ id: existingPost.headerImageId });
+        console.log("deleted");
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { image: _, ...rest } = parsedData.data;
     await postQueries.updatePost({
-      id: parsedId,
-      ...parsedData.data,
+      ...rest,
+      headerImageId,
     });
 
     return APIResponse({

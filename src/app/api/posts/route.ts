@@ -1,3 +1,4 @@
+import { createFile, uploadFileToCloudinary } from "@/db/queries/file.queries";
 import * as postQueries from "@/db/queries/post.queries";
 import { UserRole } from "@/db/types";
 import { protectedAction } from "@/lib/session";
@@ -54,7 +55,14 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { title, content, shortDescription, headerImageId, state } = parsedData.data;
+    const { title, content, shortDescription, image, state } = parsedData.data;
+    let headerImageId;
+    if (image) {
+      const { url, public_id, original_filename } = await uploadFileToCloudinary({ file: image });
+      const { id } = await createFile({ url, cloudinaryId: public_id, name: original_filename, size: image.size });
+      headerImageId = id;
+    }
+
     await postQueries.createPost({
       authorId: payload.userId,
       title,

@@ -2,20 +2,33 @@ import { parseCreateQueryDependencies, parseUpdateQueryDependencies } from "@/li
 import psqlPool from "..";
 import { CommentCK, OptionalReturn, PostCK, PostState, UserCK } from "../types";
 
-export type PostWithAuthorReturn = Pick<UserCK, "username" | "email" | "pictureUrl"> &
-  Pick<PostCK, "title" | "shortDescription" | "content" | "image" | "createdAt" | "authorId">;
+export type PostWithAuthorReturn = Pick<UserCK & { pictureUrl?: string, }, "username" | "email" | "pictureUrl"> &
+  Pick<PostCK & { headerImageUrl?: string; }, "title" | "shortDescription" | "content" | "createdAt" | "authorId" | "headerImageUrl" | "headerImageId">;
 
 type FindPostProps = {
   id: number;
   state?: PostState | null;
 };
 
-export const findPost = async ({ id, state = PostState.published }: FindPostProps) => {
+export const buildPostStateCondition = ({ state, conditionsLength = 0, tableColumnName = "posts.state" }: { state: PostState; conditionsLength?: number; tableColumnName?: string; }) => {
+  if (state === PostState.all) {
+    return `${tableColumnName} IN ('published', 'draft')`;
+  }
+  return `${tableColumnName} = $${conditionsLength + 1}`;
+};
+
+export const findPost = async ({ id, state }: FindPostProps) => {
   const conditions = ["posts.id = $1"];
   const values: (string | number)[] = [id];
   if (state) {
-    conditions.push("posts.state = $2");
-    values.push(state);
+    const isEveryPostState = state === PostState.all;
+    const stateConditon = buildPostStateCondition({ conditionsLength: conditions.length, state });
+    conditions.push(
+      stateConditon
+    );
+    if (!isEveryPostState) {
+      values.push(state);
+    }
   }
   const whereClause = conditions.join(" AND ");
   const postWithAuth = await psqlPool.query<OptionalReturn<PostWithAuthorReturn>>(
@@ -23,14 +36,19 @@ export const findPost = async ({ id, state = PostState.published }: FindPostProp
     SELECT 
       users.username,
       users.email,
-      users.picture_url AS "pictureUrl",
-      posts.author_id AS authorId,
+      posts.author_id AS "authorId",
       posts.title,
       posts.content,
       posts.created_at as "createdAt",
-      posts.short_description as "shortDescription"
+      posts.state as "state",
+      posts.short_description as "shortDescription",
+      postFile.url as "headerImageUrl",
+      postFile.id as "headerImageId",
+      userFile.url as "pictureUrl"
     FROM posts
+    LEFT JOIN files postFile ON posts.header_image_id = postFile.id
     JOIN users ON posts.author_id = users.id
+    LEFT JOIN files userFile ON users.picture_id = userFile.id
     WHERE ${whereClause};
     `,
     values,
@@ -39,7 +57,7 @@ export const findPost = async ({ id, state = PostState.published }: FindPostProp
   return postWithAuth?.rows?.[0];
 };
 
-export type CommentWithAuthor = Pick<UserCK, "username" | "email" | "pictureUrl"> &
+export type CommentWithAuthor = Pick<UserCK & { pictureUrl?: string; }, "username" | "email" | "pictureUrl"> &
   Pick<CommentCK, "id" | "content" | "createdAt">;
 
 type FindCommentsForPostProps = {
@@ -51,12 +69,14 @@ export const findCommentsForPost = async ({ id }: FindCommentsForPostProps) => {
     SELECT 
       users.username,
       users.email,
-      users.picture_url AS "pictureUrl",
+      users.picture_id AS "pictureId",
+      files.url AS "pictureUrl",
       comments.id,
       comments.content,
       comments.created_at AS "createdAt"
     FROM comments
     JOIN users ON comments.user_id = users.id
+    LEFT JOIN files ON users.picture_id = files.id
     WHERE comments.post_id = $1
     ORDER BY comments.created_at DESC;
     `,
@@ -65,8 +85,8 @@ export const findCommentsForPost = async ({ id }: FindCommentsForPostProps) => {
   return commentsWithAuthors.rows;
 };
 
-export type FindPostsReturn = Pick<PostCK, "id" | "title" | "createdAt" | "image"> &
-  Pick<UserCK, "email" | "pictureUrl" | "username">;
+export type FindPostsReturn = Pick<PostCK & { headerImageUrl?: string; }, "id" | "title" | "createdAt" | "headerImageUrl" | "headerImageId"> &
+  Pick<UserCK & { pictureUrl?: string; }, "email" | "pictureUrl" | "username">;
 
 type FindPostsProps = {
   cursor?: number | null;
@@ -92,15 +112,16 @@ export const findPosts = async ({ cursor = 0, state = PostState.published }: Fin
         posts.state,
         users.email,
         users.username,
-        files.url AS "pictureUrl"
+        headerFile.url AS "headerImageUrl"
       FROM posts 
       JOIN users ON posts.author_id = users.id
       LEFT JOIN files ON users.picture_id = files.id 
+      LEFT JOIN files headerFile ON posts.header_image_id = headerFile.id
       WHERE 
         posts.id > $1 AND
         posts.state IN (${stateParamIndexList.join(", ")})
       ORDER BY posts.id
-      LIMIT 5;
+      LIMIT 10;
       `,
     [...paramInjectionDependency],
   );
@@ -134,19 +155,15 @@ type UpdatePostProps = {
   state?: PostState;
 };
 
-// TODO how does paremetrized depdendecies handle boolean values
-// (should it be parsed to "TRUE"?)
 
-export const updatePost = async (data: UpdatePostProps) => {
+export const updatePost = async ({ id, ...data }: UpdatePostProps) => {
   const { columnNames, columnValues, endIndex } = parseUpdateQueryDependencies(data);
-
   return (
     await psqlPool.query(`
       UPDATE posts 
       SET ${columnNames}
       WHERE id = $${endIndex + 1};
-    `),
-    [columnValues]
+    `, [...columnValues, id])
   );
 };
 

@@ -4,7 +4,12 @@ export const populateDb = async () => {
   try {
     await dbClient.query(`
 
-      CREATE TYPE state AS ENUM('published', 'draft');
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'state') THEN
+            CREATE TYPE state AS ENUM('published', 'draft');
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -24,7 +29,7 @@ export const populateDb = async () => {
         short_description VARCHAR(300),
         author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         state STATE DEFAULT 'draft' NOT NULL,
-        header_image_id INTEGER REFERENCES files(id) ON DELETE CASCADE,
+        header_image_id INTEGER REFERENCES files(id) ON DELETE SET NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT null
       );
@@ -36,7 +41,7 @@ export const populateDb = async () => {
         size INTEGER,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         url TEXT,
-        cloudinary_id TEXT,
+        cloudinary_id TEXT
       );
 
       CREATE TABLE IF NOT EXISTS comments (

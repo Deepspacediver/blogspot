@@ -65,9 +65,7 @@ export async function PATCH(req: NextRequest, { params }: PostParams) {
       const { id } = await createFile({ url, cloudinaryId: public_id, name: original_filename, size });
       headerImageId = id;
       if (existingPost.headerImageId) {
-        console.log("deleting");
         await deleteFile({ id: existingPost.headerImageId });
-        console.log("deleted");
       }
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

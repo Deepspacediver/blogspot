@@ -73,26 +73,26 @@ type ActionProps = {
 };
 export async function protectedAction<T>(action: ({ payload, body }: ActionProps) => Promise<T>, req?: NextRequest): Promise<T> {
   if (!!req) {
-    const { payload, error } = await validateAPIToken();
-    const contentTypeHeader = req.headers.get("content-type");
-    const isFormDataContentType = contentTypeHeader?.includes("multipart/form-data");
-    const body = req.method === "GET" ? {} : isFormDataContentType ? Object.fromEntries(await req.formData()) : await req.json();
-    if (error || !payload) {
-      logger({ error });
-      return APIResponse({
-        data: {
-          message: "Unauthorized",
-        },
-        status: 401,
-      }) as never;
-    }
     try {
+      const { payload, error } = await validateAPIToken();
+      const contentTypeHeader = req.headers.get("content-type");
+      const isFormDataContentType = contentTypeHeader?.includes("multipart/form-data");
+      const body = req.method === "GET" ? {} : isFormDataContentType ? Object.fromEntries(await req.formData()) : await req.json();
+      if (error || !payload) {
+        logger({ error });
+        return APIResponse({
+          data: {
+            message: "Unauthorized",
+          },
+          status: 401,
+        }) as never;
+      }
       return await action({ payload, body });
     } catch (error) {
       logger({ error });
       return APIResponse({
         data: {
-          message: "Internal Server Error",
+          message: "Internal Server Error"
         },
         status: 500,
       }) as never;

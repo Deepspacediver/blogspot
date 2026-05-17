@@ -5,7 +5,7 @@ import { APIResponse } from "@/lib/utils";
 import { UserRole } from "@/db/types";
 
 type CommentsParams = {
-  params: Promise<{ id: string; commentId: string }>;
+  params: Promise<{ id: string; commentId: string; }>;
 };
 
 export async function DELETE(req: NextRequest, { params }: CommentsParams) {
@@ -13,15 +13,16 @@ export async function DELETE(req: NextRequest, { params }: CommentsParams) {
     const { commentId, id } = await params;
     const parsedCommentId = +commentId;
     const parsedPostId = +id;
-    const { authorId, userId: commentAuthorId } = await commentQueries.getCommentPostAuthorId({
+    const { authorId: postAuthorId, userId: commentAuthorId } = await commentQueries.getCommentPostAuthorId({
       commentId: parsedCommentId,
       postId: parsedPostId,
     });
-    if (commentAuthorId !== payload.userId || (payload.role !== UserRole.SUPER_ADMIN && authorId !== payload.userId)) {
+    if ((commentAuthorId !== payload.userId && payload.role !== UserRole.SUPER_ADMIN) || (postAuthorId !== payload.userId && payload.role !== UserRole.SUPER_ADMIN)) {
       return APIResponse({
         data: {
-          message: "You need to be a post author to delete this comment",
+          message: "You need to be a comment author or super admin to delete this comment",
         },
+        status: 403
       });
     }
     await commentQueries.deleteComment({

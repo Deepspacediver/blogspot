@@ -77,7 +77,8 @@ export async function protectedAction<T>(action: ({ payload, body }: ActionProps
       const { payload, error } = await validateAPIToken();
       const contentTypeHeader = req.headers.get("content-type");
       const isFormDataContentType = contentTypeHeader?.includes("multipart/form-data");
-      const body = req.method === "GET" ? {} : isFormDataContentType ? Object.fromEntries(await req.formData()) : await req.json();
+      const isDeleteMethod = req.method === "DELETE";
+      const body = req.method === "GET" ? {} : isFormDataContentType ? Object.fromEntries(await req.formData()) : isDeleteMethod ? {} : await req.json();
       if (error || !payload) {
         logger({ error });
         return APIResponse({

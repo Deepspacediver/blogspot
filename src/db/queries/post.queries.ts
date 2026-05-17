@@ -1,6 +1,8 @@
 import { parseCreateQueryDependencies, parseUpdateQueryDependencies } from "@/lib/utils";
 import psqlPool from "..";
 import { CommentCK, OptionalReturn, PostCK, PostState, UserCK } from "../types";
+import { PoolClient } from "pg";
+import * as fileQueries from "./file.queries";
 
 export type PostWithAuthorReturn = Pick<UserCK & { pictureUrl?: string, }, "username" | "email" | "pictureUrl"> &
   Pick<PostCK & { headerImageUrl?: string; }, "title" | "shortDescription" | "content" | "createdAt" | "authorId" | "headerImageUrl" | "headerImageId">;
@@ -34,6 +36,7 @@ export const findPost = async ({ id, state }: FindPostProps) => {
   const postWithAuth = await psqlPool.query<OptionalReturn<PostWithAuthorReturn>>(
     `
     SELECT 
+      posts.id,
       users.username,
       users.email,
       posts.author_id AS "authorId",
@@ -69,7 +72,6 @@ export const findCommentsForPost = async ({ id }: FindCommentsForPostProps) => {
     SELECT 
       users.username,
       users.email,
-      users.picture_id AS "pictureId",
       files.url AS "pictureUrl",
       comments.id,
       comments.content,
@@ -130,36 +132,45 @@ export const findPosts = async ({ cursor = 0, state = PostState.published }: Fin
 };
 
 type CreatePostProps = {
-  authorId: number;
-  title: string;
-  content: object;
-  shortDescription?: string;
-  headerImageId?: number;
-  state?: PostState;
+  data: {
+    authorId: number;
+    title: string;
+    content: object;
+    shortDescription?: string;
+    headerImageId?: number;
+    state?: PostState;
+  },
+  txClient?: PoolClient;
 };
-
-export const createPost = async (data: CreatePostProps) => {
+export const createPost = async ({ data, txClient }: CreatePostProps) => {
   const { columnsString, values, pgIndicesString } = parseCreateQueryDependencies({ data });
   const query = `
     INSERT INTO posts (${columnsString})
-    VALUES (${pgIndicesString})`;
-  return await psqlPool.query(query, values);
+    VALUES (${pgIndicesString}) RETURNING id`;
+  const dbClient = txClient || psqlPool;
+  const post = await dbClient.query<Pick<PostCK, "id">>(query, values);
+  return post.rows[0];
+
 };
 
 type UpdatePostProps = {
-  id: number;
-  title?: string;
-  content?: object;
-  shortDescription?: string;
-  headerImageId?: number;
-  state?: PostState;
+  data: {
+    id: number;
+    title?: string;
+    content?: object;
+    shortDescription?: string;
+    headerImageId?: number;
+    state?: PostState;
+  };
+  txClient?: PoolClient;
 };
 
 
-export const updatePost = async ({ id, ...data }: UpdatePostProps) => {
-  const { columnNames, columnValues, endIndex } = parseUpdateQueryDependencies(data);
+export const updatePost = async ({ data: { id, ...postData }, txClient }: UpdatePostProps) => {
+  const { columnNames, columnValues, endIndex } = parseUpdateQueryDependencies({ data: postData });
+  const dbClient = txClient || psqlPool;
   return (
-    await psqlPool.query(`
+    await dbClient.query(`
       UPDATE posts 
       SET ${columnNames}
       WHERE id = $${endIndex + 1};
@@ -169,15 +180,21 @@ export const updatePost = async ({ id, ...data }: UpdatePostProps) => {
 
 type DeletePostProps = {
   id: number;
+  txClient?: PoolClient;
 };
 
-// TODO delete all images from post
-export const deletePost = async ({ id }: DeletePostProps) => {
-  await psqlPool.query(
+export const deletePost = async ({ id, txClient }: DeletePostProps) => {
+  const dbClient = txClient || psqlPool;
+  const imagesFromPost = (await fileQueries.getFilesFromPost({ postId: id, txClient: txClient })).map(({ cloudinaryId }) => cloudinaryId);
+  await dbClient.query(
     `
       DELETE FROM posts
       WHERE id = $1;
     `,
     [id],
   );
+  await fileQueries.deleteCloudinaryFiles({ ids: imagesFromPost });
+
 };
+
+

@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
       return APIResponse({
         status: 400,
         data: {
-          message: "Invalid request data"
-        }
+          message: "Invalid request data",
+        },
       });
     }
     const { file } = parsedData.data;
@@ -27,10 +27,7 @@ export async function POST(req: NextRequest) {
       use_filename: true,
     });
     const data = await fileQueries.createFile({
-      url: res.url,
-      cloudinaryId: res.public_id,
-      name: res.original_filename,
-      size: file.size,
+      data: { url: res.url, cloudinaryId: res.public_id, name: res.original_filename, size: file.size },
     });
 
     return APIResponse({

@@ -46,10 +46,10 @@ export const createUser = async ({ email, password, role = UserRole.USER }: Crea
   return user?.rows?.[0];
 };
 
-type UpdateUserProps = { id: number } & Partial<Omit<UserCK, "createdAt" | "updatedAt">>;
+type UpdateUserProps = { id: number; } & Partial<Omit<UserCK, "createdAt" | "updatedAt">>;
 
 export const updateUser = async ({ id, ...rest }: UpdateUserProps) => {
-  const { columnNames, columnValues, endIndex } = parseUpdateQueryDependencies(rest);
+  const { columnNames, columnValues, endIndex } = parseUpdateQueryDependencies({ data: rest });
 
   const user = await psqlPool.query<UserReturn>(
     `

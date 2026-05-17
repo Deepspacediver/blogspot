@@ -95,14 +95,17 @@ export const parseCreateQueryDependencies = <T extends Record<PropertyKey, T[key
   return { columnsString, values, pgIndicesString, endIndex };
 };
 
-export const parseUpdateQueryDependencies = <T extends Record<PropertyKey, T[keyof T]>>(data: T) => {
+export const parseUpdateQueryDependencies = <T extends Record<PropertyKey, T[keyof T]>>({ data, indexOffset = 0 }: { data: T, indexOffset?: number; }) => {
   const columnNames = Object.entries(data)
-    .filter(([_, val]) => val !== undefined)
-    .map(([key], i) => `${stringCamelCaseToSnakeCase(key)} = $${i + 1}`)
+    .filter(([, val]) => val !== undefined || (Array.isArray(val) && val.length > 0))
+    .flatMap(([key], i) => `${stringCamelCaseToSnakeCase(key)} = $${i + 1 + indexOffset}`)
     .join(", ");
-  const columnValues = [...Object.entries(data).flatMap(([_, val]) => (!!val ? [val] : []))];
+  const columnValues = Object.entries(data).filter(([, val]) => val !== undefined || (Array.isArray(val) && val.length > 0)).map(([, val]) => val);
+  const columnNamesIndexed = columnValues.map((_, i) => `$${i + 1 + indexOffset}`);
   const endIndex = columnValues.length;
+
   return {
+    columnNamesIndexed,
     columnNames,
     columnValues,
     endIndex,

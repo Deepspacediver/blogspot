@@ -12,6 +12,7 @@ export const createPostSchema = z.object({
   shortDescription: z.string().optional(),
   image: z.file().optional(),
   state: z.enum(PostState).optional().default(PostState.published),
+  fileIds: z.string().transform((data) => JSON.parse(data)).pipe(z.array(z.coerce.number())).optional()
 });
 export const updatePostSchema = z.object({
   id: z.coerce.number(),
@@ -20,4 +21,5 @@ export const updatePostSchema = z.object({
   shortDescription: z.string().optional(),
   image: z.file().optional(),
   state: z.enum(PostState).exclude([PostState.all]).optional(),
+  fileIds: z.string().transform((data) => JSON.parse(data)).pipe(z.array(z.coerce.number())).optional()
 });

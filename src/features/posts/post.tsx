@@ -18,7 +18,7 @@ export default async function Post({ post }: PostProps) {
   const { attributeDate, formattedDate } = getFormattedDateWithAttribute(createdAt);
 
   return (
-    <article className="max-w-3xl mx-auto px-4 py-12">
+    <>
       <header className="mb-10">
         <h1 className="text-4xl md:text-5xl lg:text-[54px] font-bold tracking-tight text-foreground leading-[1.15] mb-4">
           {title}
@@ -52,6 +52,6 @@ export default async function Post({ post }: PostProps) {
           }}
         ></div>
       </section>
-    </article>
+    </>
   );
 }

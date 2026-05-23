@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import { format } from "date-fns";
+import { format, formatDistanceToNowStrict } from "date-fns";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { twMerge } from "tailwind-merge";
 
@@ -24,12 +24,20 @@ export const formatDateToDateTimeAttribute = (data: Date | string | number) => {
   return format(new Date(data), "yyyy-MM-dd kk:mm:ss");
 };
 
+export const formatDateDistance = (data: Date | string | number) => {
+  return formatDistanceToNowStrict(new Date(data), {
+    addSuffix: true,
+  });
+};
+
 export const getFormattedDateWithAttribute = (data: Date | string | number) => {
   const attributeDate = formatDateToDateTimeAttribute(data);
   const formattedDate = formatDateToAppConvention(data);
+  const distanceDate = formatDateDistance(data);
   return {
     attributeDate,
     formattedDate,
+    distanceDate
   };
 };
 

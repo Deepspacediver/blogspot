@@ -12,6 +12,7 @@ export type User = {
   created_at: Date;
   updated_at?: Date;
   picture_id?: number;
+  picture_url?: string;
   role: UserRole;
 };
 

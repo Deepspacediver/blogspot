@@ -18,4 +18,25 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   );
 }
 
-export { Input };
+type FormMessageProps = { messages?: string[] | null } & React.ComponentProps<"p">;
+
+function FormMessage({ messages, className, ...props }: FormMessageProps) {
+  if (!messages || !messages.length) {
+    return null;
+  }
+
+  return (
+    <p className={cn("text-red-500 text-xs", className)} {...props}>
+      {messages.map((msg) => {
+        return (
+          <>
+            <p>{msg}</p>
+            <br />
+          </>
+        );
+      })}
+    </p>
+  );
+}
+
+export { Input, FormMessage };

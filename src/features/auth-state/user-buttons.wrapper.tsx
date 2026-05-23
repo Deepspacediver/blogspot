@@ -7,7 +7,7 @@ import SignOutButton from "@/components/sign-out.button";
 export default async function UserButtonsWrapper() {
   const { user } = await getAppSessionData();
   return user ? (
-    <div className="flex gap-1">
+    <div className="flex gap-1 items-center">
       <UserProfile user={user} />
       <SignOutButton />
     </div>

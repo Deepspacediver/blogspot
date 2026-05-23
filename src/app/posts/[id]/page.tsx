@@ -1,9 +1,7 @@
-import CommentForm from "@/features/comment/comment.form";
 import { getPostWithComments } from "@/lib/actions/post.actions";
-import CommentList from "@/features/comment/comment.list";
 import React from "react";
-import { getAppSessionData } from "@/lib/auth-dal";
 import Post from "@/features/posts/post";
+import CommentSection from "@/features/comment/comment.section";
 
 type PostPageProps = {
   params: Promise<{ id: string }>;
@@ -15,9 +13,7 @@ type PostPageProps = {
 export default async function Page({ params }: PostPageProps) {
   const { id } = await params;
   const parsedId = +id;
-  const { user } = await getAppSessionData();
   const { data } = await getPostWithComments(parsedId);
-
   if (!data || !data.post) {
     // TODO temporary add notFound
     return <div>Couldnt find a post</div>;
@@ -25,12 +21,10 @@ export default async function Page({ params }: PostPageProps) {
 
   return (
     <div>
-      <div>
+      <article className="max-w-3xl mx-auto px-4 py-12">
         <Post post={data.post} />
-        {/* TODO  Handle empty comments */}
-        <CommentList postId={parsedId} data={data.comments} />
-      </div>
-      {parsedId && user && <CommentForm postId={parsedId} />}
+        <CommentSection data={data.comments} postId={parsedId} />
+      </article>
     </div>
   );
 }

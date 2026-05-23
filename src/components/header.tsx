@@ -7,9 +7,9 @@ type HeaderProps = {
   children?: ReactNode;
 };
 
-export default function Header({ children }: HeaderProps) {
+export default function Header({}: HeaderProps) {
   return (
-    <header className="h-[75px] bg-white shadow-header flex items-center gap-2 p-1">
+    <header className="h-[75px] bg-card/80 backdrop-blur-md shadow-header flex items-center gap-2 p-1 sticky top-0 z-50">
       <Image src="/logo.svg" alt="Blogspot" width={50} height={50} />
       <Navbar />
       <UserButtonsWrapper />

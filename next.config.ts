@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "img.freepik.com",
       },
+      {
+        protocol: "http",
+        hostname: "res.cloudinary.com"
+      }
     ],
   },
   headers: async function () {

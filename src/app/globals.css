@@ -64,7 +64,7 @@
   --popover-foreground: hsl(73, 25%, 20%);
 
   --muted: hsl(33, 20%, 86%);
-  --muted-foreground: hsl(73, 15%, 45%);
+  --muted-foreground: hsl(73, 15%, 32%);
 
   --accent: hsl(33, 20%, 86%);
   --accent-foreground: hsl(73, 25%, 20%);
@@ -153,16 +153,16 @@
     @apply font-bold text-foreground text-pretty;
   }
   h1 {
-    @apply text-4xl md:text-5xl lg:text-[54px] tracking-tight leading-[1.15] mb-4 mt-10;
+    @apply text-4xl md:text-5xl lg:text-[54px] tracking-tight leading-[1.15];
   }
   h2 {
-    @apply text-3xl md:text-4xl lg:text-[42px] tracking-tight leading-[1.2] mb-4 mt-10;
+    @apply text-3xl md:text-4xl lg:text-[42px] tracking-tight leading-[1.2];
   }
   h3 {
-    @apply text-2xl md:text-3xl lg:text-[30px] tracking-tight leading-[1.25] mb-3 mt-8;
+    @apply text-2xl md:text-3xl lg:text-[30px] tracking-tight leading-[1.25];
   }
   h4 {
-    @apply text-xl md:text-2xl lg:text-[24px] tracking-tight leading-[1.3] mb-3 mt-6;
+    @apply text-xl md:text-2xl lg:text-[24px] tracking-tight leading-[1.3];
   }
 }
 
@@ -172,6 +172,22 @@
 
     > :first-child {
       @apply mt-0;
+    }
+
+    h1 {
+      @apply mb-4 mt-10;
+    }
+
+    h2 {
+      @apply mb-4 mt-10;
+    }
+
+    h3 {
+      @apply mb-3 mt-8;
+    }
+
+    h4 {
+      @apply mb-3 mt-6;
     }
 
     p {

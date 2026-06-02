@@ -87,7 +87,7 @@ export const findCommentsForPost = async ({ id }: FindCommentsForPostProps) => {
   return commentsWithAuthors.rows;
 };
 
-export type FindPostsReturn = Pick<PostCK & { headerImageUrl?: string; }, "id" | "title" | "createdAt" | "headerImageUrl" | "headerImageId"> &
+export type FindPostsReturn = Pick<PostCK & { headerImageUrl?: string; }, "id" | "title" | "createdAt" | "headerImageUrl" | "headerImageId" | "shortDescription"> &
   Pick<UserCK & { pictureUrl?: string; }, "email" | "pictureUrl" | "username">;
 
 type FindPostsProps = {
@@ -111,6 +111,7 @@ export const findPosts = async ({ cursor = 0, state = PostState.published }: Fin
         posts.title,
         posts.header_image_id as "headerImageId",
         posts.created_at AS "createdAt",
+        posts.short_description AS "shortDescription",
         posts.state,
         users.email,
         users.username,

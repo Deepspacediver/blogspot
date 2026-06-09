@@ -1,8 +1,11 @@
+"use server";
+
 import { parseCreateQueryDependencies, parseUpdateQueryDependencies } from "@/lib/utils";
 import psqlPool from "..";
 import { CommentCK, OptionalReturn, PostCK, PostState, UserCK } from "../types";
 import { PoolClient } from "pg";
 import * as fileQueries from "./file.queries";
+import { buildPostStateCondition } from "./post.helpers";
 
 export type PostWithAuthorReturn = Pick<UserCK & { pictureUrl?: string, }, "username" | "email" | "pictureUrl"> &
   Pick<PostCK & { headerImageUrl?: string; }, "title" | "shortDescription" | "content" | "createdAt" | "authorId" | "headerImageUrl" | "headerImageId">;
@@ -10,13 +13,6 @@ export type PostWithAuthorReturn = Pick<UserCK & { pictureUrl?: string, }, "user
 type FindPostProps = {
   id: number;
   state?: PostState | null;
-};
-
-export const buildPostStateCondition = ({ state, conditionsLength = 0, tableColumnName = "posts.state" }: { state: PostState; conditionsLength?: number; tableColumnName?: string; }) => {
-  if (state === PostState.all) {
-    return `${tableColumnName} IN ('published', 'draft')`;
-  }
-  return `${tableColumnName} = $${conditionsLength + 1}`;
 };
 
 export const findPost = async ({ id, state }: FindPostProps) => {
@@ -124,7 +120,7 @@ export const findPosts = async ({ cursor = 0, state = PostState.published }: Fin
         posts.id > $1 AND
         posts.state IN (${stateParamIndexList.join(", ")})
       ORDER BY posts.id
-      LIMIT 10;
+      LIMIT 3;
       `,
     [...paramInjectionDependency],
   );

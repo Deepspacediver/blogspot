@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import { format, formatDistanceToNowStrict } from "date-fns";
+import { format, formatDistanceToNowStrict, isAfter } from "date-fns";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { twMerge } from "tailwind-merge";
 
@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const isExpired = (date: Date | number) => {
-  return new Date(date).valueOf() - new Date().valueOf() < 0;
+  return isAfter(new Date(), new Date(date));
 };
 
 export const getErrorDetails = ({ error, defaultMessage }: { error: unknown; defaultMessage?: string; }) => {

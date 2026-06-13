@@ -1,12 +1,16 @@
-import { type FindPostsReturn } from "@/db/queries/post.queries";
+import { getPosts } from "@/lib/actions/post.actions";
 import React from "react";
 import PostPreview, { MainPostPreview } from "./post-preview";
+import InfinitePostList from "@/features/posts/infinite-post-list";
 
-type PostPreviewListProps = {
-  data: FindPostsReturn[];
-};
-export default async function PostPreviewList({ data }: PostPreviewListProps) {
+export default async function PostPreviewsWrapper() {
+  const { data } = await getPosts();
+  if (!data) {
+    // TOOD handle this
+    return <div>No posts found.</div>;
+  }
   const [firstPost, ...rest] = data;
+  const initialCursor = rest[rest.length - 1].id;
   return (
     <div className="max-w-7xl px-4 flex flex-col mx-auto">
       <MainPostPreview data={firstPost} />
@@ -14,6 +18,7 @@ export default async function PostPreviewList({ data }: PostPreviewListProps) {
         {rest.map((post) => {
           return <PostPreview key={post.id} data={post} />;
         })}
+        <InfinitePostList initialData={data} initialCursor={initialCursor} />
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ type PostPreviewProps = {
   data: FindPostsReturn;
 };
 
-export default async function PostPreview({ data }: PostPreviewProps) {
+export default function PostPreview({ data }: PostPreviewProps) {
   const { id, title, headerImageUrl, createdAt, email: authorEmail, username } = data;
   const { attributeDate, formattedDate } = getFormattedDateWithAttribute(createdAt);
   return (

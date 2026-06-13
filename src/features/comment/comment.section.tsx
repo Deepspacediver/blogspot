@@ -2,7 +2,7 @@ import { CommentWithAuthor } from "@/db/queries/post.queries";
 import { getAppSessionData } from "@/lib/auth-dal";
 import React from "react";
 import CommentForm from "@/features/comment/comment.form";
-import Comment from "@/features/comment/comment";
+import CommentList from "./comment.list";
 
 type CommentSectionProps = {
   data: CommentWithAuthor[];
@@ -17,9 +17,8 @@ export default async function CommentSection({ data, postId }: CommentSectionPro
     <section className="h-full">
       <h2>Comments</h2>
       {postId && user && <CommentForm postId={postId} />}
-      {areCommentsEmpty && <p>No comments yet.</p>}
-      {!areCommentsEmpty &&
-        data.map((comment) => <Comment postId={postId} key={comment.id} data={comment} />)}
+      {areCommentsEmpty && <div className="mx-auto w-fit p-2">No comments yet.</div>}
+      {!areCommentsEmpty && <CommentList postId={postId} data={data} />}
     </section>
   );
 }

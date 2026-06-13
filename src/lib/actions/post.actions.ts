@@ -1,3 +1,5 @@
+"use server";
+
 import { defaultFetchState } from "@/constants/fetch-states";
 import * as postQueries from "@/db/queries/post.queries";
 import { getErrorDetails } from "../utils";

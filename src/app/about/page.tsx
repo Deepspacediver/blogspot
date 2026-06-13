@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function Page() {
   return (
-    <div className="max-w-4xl mx-auto p-6 md:py-20">
+    <div className="max-w-4xl mx-auto p-6">
       <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 mb-16">
         <div className="relative w-48 h-48 md:w-56 md:h-56 shrink-0 rounded-full overflow-hidden border-4 border-secondary/20 shadow-xl bg-card">
           <Image

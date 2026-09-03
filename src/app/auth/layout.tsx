@@ -8,5 +8,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
     redirect("/");
   }
 
-  return children;
+  return (
+    <div className="flex min-h-[calc(100vh-160px)] items-center justify-center p-4 sm:p-6 py-12">
+      {children}
+    </div>
+  );
 }

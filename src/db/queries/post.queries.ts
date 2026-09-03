@@ -57,7 +57,7 @@ export const findPost = async ({ id, state }: FindPostProps) => {
 };
 
 export type CommentWithAuthor = Pick<UserCK & { pictureUrl?: string; }, "username" | "email" | "pictureUrl"> &
-  Pick<CommentCK, "id" | "content" | "createdAt">;
+  Pick<CommentCK, "id" | "userId" | "content" | "createdAt">;
 
 type FindCommentsForPostProps = {
   id: number;
@@ -70,6 +70,7 @@ export const findCommentsForPost = async ({ id }: FindCommentsForPostProps) => {
       users.email,
       files.url AS "pictureUrl",
       comments.id,
+      comments.user_id AS "userId",
       comments.content,
       comments.created_at AS "createdAt"
     FROM comments

@@ -18,23 +18,27 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   );
 }
 
-type FormMessageProps = { messages?: string[] | null } & React.ComponentProps<"p">;
+type FormMessageProps = { messages?: string[] | null | string } & React.ComponentProps<"p">;
 
 function FormMessage({ messages, className, ...props }: FormMessageProps) {
   if (!messages || !messages.length) {
     return null;
   }
 
+  const isArray = Array.isArray(messages);
+
   return (
     <p className={cn("text-red-500 text-xs", className)} {...props}>
-      {messages.map((msg) => {
-        return (
-          <>
-            <p>{msg}</p>
-            <br />
-          </>
-        );
-      })}
+      {isArray
+        ? messages.map((msg) => {
+            return (
+              <>
+                <p>{msg}</p>
+                <br />
+              </>
+            );
+          })
+        : messages}
     </p>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { defaultCreateCommentState } from "@/constants/form-states";
 import { handleCreateComment } from "@/lib/actions/comment.actions";
@@ -14,24 +14,24 @@ type CommentFormProps = {
 
 export default function CommentForm({ postId }: CommentFormProps) {
   const createCommentWithId = handleCreateComment.bind(null, postId);
-  const [commentState, createCommentAction] = useActionState(createCommentWithId, defaultCreateCommentState);
+  const [commentState, createCommentAction, isPending] = useActionState(createCommentWithId, defaultCreateCommentState);
   const errors = commentState.fieldErrors;
   return (
     <form
-      className="relative bg-white rounded-t-xl overflow-hidden flex flex-col mt-6"
+      className="mb-8 rounded-2xl border border-border/80 bg-card p-4 flex flex-col gap-3 shadow-2xs focus-within:border-secondary/60 transition-colors"
       action={createCommentAction}
     >
       <Textarea
-        className="block bg-white rounded-none border-0 focus-visible:ring-0 resize-none"
+        className="min-h-[90px] border-0 bg-transparent p-1 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0 resize-none shadow-none"
         id="content"
         name="content"
         placeholder="Write a response..."
       />
-      <Separator className="bg-border/60" />
-      <div className="flex justify-between p-1.5 bg-muted/10">
+      <div className="flex items-center justify-between pt-2 border-t border-border/60">
         <FormMessage messages={errors?.content} />
-        <Button type="submit" size="sm" className="font-semibold px-4 ml-auto">
-          Submit
+        <Button type="submit" size="sm" disabled={isPending} className="font-semibold px-4 ml-auto">
+          {isPending && <Spinner />}
+          Respond
         </Button>
       </div>
     </form>

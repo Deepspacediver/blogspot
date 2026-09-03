@@ -16,16 +16,21 @@ export default function DeleteCommentButton({ commentId, postId, className }: De
   const [isPending, startTransition] = useTransition();
   return (
     <Button
-      size={"icon"}
-      className={cn("ml-auto", className)}
+      size="icon"
+      variant="ghost"
+      className={cn(
+        "size-8 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors ml-auto shrink-0",
+        className,
+      )}
       disabled={isPending}
+      title="Delete comment"
       onClick={() => {
         startTransition(async () => {
           await handleDeleteComment({ postId, commentId });
         });
       }}
     >
-      <Trash />
+      <Trash className="size-4" />
     </Button>
   );
 }

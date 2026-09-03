@@ -2,21 +2,18 @@ import { getPostWithComments } from "@/lib/actions/post.actions";
 import React from "react";
 import Post from "@/features/posts/post";
 import CommentSection from "@/features/comment/comment.section";
+import { notFound } from "next/navigation";
 
 type PostPageProps = {
   params: Promise<{ id: string }>;
 };
 
-// TODO this is only for rendering & testing
-// this would be moved to seperate wrapper and loading state would be handled here
-// additionaly content would be rendered as html, not simple text
 export default async function Page({ params }: PostPageProps) {
   const { id } = await params;
   const parsedId = +id;
   const { data } = await getPostWithComments(parsedId);
   if (!data || !data.post) {
-    // TODO temporary add notFound
-    return <div>Couldnt find a post</div>;
+    notFound();
   }
 
   return (

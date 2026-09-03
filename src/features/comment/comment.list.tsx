@@ -9,7 +9,7 @@ type CommentListProps = {
 
 export default function CommentList({ data, postId }: CommentListProps) {
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       {data.map((comment) => (
         <Comment data={comment} key={comment.id} postId={postId} />
       ))}

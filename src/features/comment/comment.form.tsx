@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { defaultCreateCommentState } from "@/constants/form-states";
 import { handleCreateComment } from "@/lib/actions/comment.actions";
@@ -14,7 +14,7 @@ type CommentFormProps = {
 
 export default function CommentForm({ postId }: CommentFormProps) {
   const createCommentWithId = handleCreateComment.bind(null, postId);
-  const [commentState, createCommentAction] = useActionState(createCommentWithId, defaultCreateCommentState);
+  const [commentState, createCommentAction, isPending] = useActionState(createCommentWithId, defaultCreateCommentState);
   const errors = commentState.fieldErrors;
   return (
     <form
@@ -29,7 +29,8 @@ export default function CommentForm({ postId }: CommentFormProps) {
       />
       <div className="flex items-center justify-between pt-2 border-t border-border/60">
         <FormMessage messages={errors?.content} />
-        <Button type="submit" size="sm" className="font-semibold px-4 ml-auto">
+        <Button type="submit" size="sm" disabled={isPending} className="font-semibold px-4 ml-auto">
+          {isPending && <Spinner />}
           Respond
         </Button>
       </div>

@@ -3,6 +3,7 @@ import { findPosts, FindPostsReturn } from "@/db/queries/post.queries";
 import { useState, useTransition } from "react";
 import PostPreview from "./post-preview";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { FETCH_LIMIT } from "@/constants/fetch-states";
 
 type InfinitePostListProps = {
@@ -48,6 +49,7 @@ export default function InfinitePostList({ initialCursor, initialData }: Infinit
               });
             }}
           >
+            {isPending && <Spinner />}
             Load More
           </Button>
         </div>

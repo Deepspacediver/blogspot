@@ -1,13 +1,15 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { FormMessage, Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { defaultSignupState } from "@/constants/form-states";
 import { handleSignUp } from "@/lib/actions/auth.actions";
 import React, { useActionState } from "react";
 
 export default function SignUp() {
-  const [errorState, signUpAction] = useActionState(handleSignUp, defaultSignupState);
+  const [errorState, signUpAction, isPending] = useActionState(handleSignUp, defaultSignupState);
   const prevFormState = errorState.prevFormState;
   const errors = errorState.fieldErrors;
   return (
@@ -23,7 +25,10 @@ export default function SignUp() {
         <Label htmlFor="confirmPassword">Confirm password</Label>
         <Input defaultValue={prevFormState?.confirmPassword || ""} type="password" name="confirmPassword" />
         <FormMessage messages={errors.confirmPassword} />
-        <button>Submit</button>
+        <Button type="submit" disabled={isPending}>
+          {isPending && <Spinner />}
+          Submit
+        </Button>
       </form>
     </div>
   );

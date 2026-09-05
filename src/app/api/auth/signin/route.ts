@@ -63,15 +63,15 @@ export async function POST(req: NextRequest) {
   const shouldUpdateRole = exisitngUser.role === UserRole.USER;
   const user = shouldUpdateRole
     ? await userQueries.updateUser({
-        id: exisitngUser.id,
-        role: UserRole.ADMIN,
-      })
+      id: exisitngUser.id,
+      role: UserRole.ADMIN,
+    })
     : {
-        email: exisitngUser.email,
-        id: exisitngUser.id,
-        username: exisitngUser.username,
-        role: exisitngUser.role,
-      };
+      email: exisitngUser.email,
+      id: exisitngUser.id,
+      username: exisitngUser.username,
+      role: exisitngUser.role,
+    };
 
   if (!user) {
     return APIResponse({
@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
     .set({
       value: accessToken,
       name: "access",
+      httpOnly: true,
       secure: true,
     })
     .set({

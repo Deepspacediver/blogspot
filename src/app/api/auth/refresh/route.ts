@@ -49,11 +49,14 @@ export async function POST() {
       .set({
         name: "access",
         value: newAccessJWT,
+        httpOnly: true,
+        secure: true,
       })
       .set({
         name: "refresh",
         value: newRefreshJWT,
         httpOnly: true,
+        secure: true,
       });
 
     return APIResponse({ data: { message: "ok" }, status: 200 });

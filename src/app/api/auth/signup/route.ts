@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
     .set({
       value: accessToken,
       name: "access",
+      httpOnly: true,
       secure: true,
     })
     .set({

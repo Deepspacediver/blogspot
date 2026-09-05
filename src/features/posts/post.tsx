@@ -12,7 +12,30 @@ type PostProps = {
   post: PostWithAuthorReturn;
 };
 
-const extensions = [StarterKit, ImageExtension];
+const CustomImage = ImageExtension.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      textAlign: {
+        default: "left",
+        renderHTML: (attributes) => {
+          const alignment = attributes.textAlign || "left";
+          const marginMap: Record<string, string> = {
+            left: "margin-right: auto; margin-left: 0;",
+            center: "margin-left: auto; margin-right: auto;",
+            right: "margin-left: auto; margin-right: 0;",
+          };
+          return {
+            "data-text-align": alignment,
+            style: `display: block; ${marginMap[alignment] || ""}`,
+          };
+        },
+      },
+    };
+  },
+});
+
+const extensions = [StarterKit, CustomImage];
 export default async function Post({ post }: PostProps) {
   const { title, shortDescription, content, createdAt, username, email, pictureUrl } = post;
   const { attributeDate, formattedDate } = getFormattedDateWithAttribute(createdAt);

@@ -1,7 +1,9 @@
 import {
   EXPIRATION_15_MINUTES,
   EXPIRATION_7_DAYS,
+  JWT_API_ACCESS_NAME,
   JWT_API_ACCESS_SIGNING_KEY,
+  JWT_API_REFRESH_NAME,
   JWT_API_REFRESH_SIGNING_KEY,
 } from "@/constants/jwt";
 import * as userQueries from "@/db/queries/user.queries";
@@ -20,11 +22,6 @@ export async function POST(req: NextRequest) {
   const parsedData = authModels.singUpSchema.safeParse(body);
 
   const cookieStore = await cookies();
-  const accessCookie = cookieStore.get("access")?.value;
-
-  if (accessCookie) {
-    return APIResponse({ data: { message: "Already logged in" }, status: 200 });
-  }
 
   if (!parsedData.success) {
     return APIResponse({
@@ -92,13 +89,13 @@ export async function POST(req: NextRequest) {
   cookieStore
     .set({
       value: accessToken,
-      name: "access",
+      name: JWT_API_ACCESS_NAME,
       httpOnly: true,
       secure: true,
     })
     .set({
       value: refreshToken,
-      name: "refresh",
+      name: JWT_API_REFRESH_NAME,
       httpOnly: true,
       secure: true,
     });

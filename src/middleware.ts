@@ -4,19 +4,20 @@ import { decryptJWT, encryptJWT } from "@/lib/session";
 import { NextResponse, type NextRequest } from "next/server";
 import { findUserByEmail } from "@/db/queries/user.queries";
 import { CustomError } from "@/errors/custom-error";
+import { JWT_APP_ACCESS_NAME, JWT_APP_REFRESH_NAME } from "@/constants/jwt";
 
 export async function middleware(request: NextRequest) {
   const headers = new Headers();
   headers.set("x-current-path", request.nextUrl.pathname);
-  const sessionCookie = request.cookies.get("session")?.value;
-  const refreshCookie = request.cookies.get("refresh")?.value;
+  const sessionCookie = request.cookies.get(JWT_APP_ACCESS_NAME)?.value;
+  const refreshCookie = request.cookies.get(JWT_APP_REFRESH_NAME)?.value;
   const response = NextResponse.next({ headers });
 
   const decryptedAccessToken = sessionCookie
     ? await decryptJWT({
-        cookie: sessionCookie,
-        signingSecret: JWT_ACCESS_SIGNING_KEY,
-      })
+      cookie: sessionCookie,
+      signingSecret: JWT_ACCESS_SIGNING_KEY,
+    })
     : undefined;
 
   if (decryptedAccessToken?.payload) {
@@ -27,12 +28,12 @@ export async function middleware(request: NextRequest) {
     !!decryptedAccessToken && !!decryptedAccessToken.error && decryptedAccessToken.error instanceof JoseErrors.JWTExpired;
 
   if (!isExpiredAccessError) {
-    response.cookies.delete("session").delete("refresh");
+    response.cookies.delete(JWT_APP_ACCESS_NAME).delete(JWT_APP_REFRESH_NAME);
     return response;
   }
 
   if (!refreshCookie) {
-    response.cookies.delete("session");
+    response.cookies.delete(JWT_APP_ACCESS_NAME);
     return response;
   }
   const decryptedRefreshToken = await decryptJWT({
@@ -41,7 +42,7 @@ export async function middleware(request: NextRequest) {
   });
 
   if (!!decryptedRefreshToken.error || !decryptedRefreshToken.payload) {
-    response.cookies.delete("session").delete("refresh");
+    response.cookies.delete(JWT_APP_ACCESS_NAME).delete(JWT_APP_REFRESH_NAME);
     return response;
   }
 
@@ -71,19 +72,19 @@ export async function middleware(request: NextRequest) {
     ]);
 
     response.cookies
-      .delete("session")
-      .delete("refresh")
+      .delete(JWT_APP_ACCESS_NAME)
+      .delete(JWT_APP_REFRESH_NAME)
       .set({
-        name: "session",
+        name: JWT_APP_ACCESS_NAME,
         value: newSessionToken,
       })
       .set({
-        name: "refresh",
+        name: JWT_APP_REFRESH_NAME,
         value: newRefreshToken,
       });
     return response;
   } catch {
-    response.cookies.delete("session").delete("refresh");
+    response.cookies.delete(JWT_APP_ACCESS_NAME).delete(JWT_APP_REFRESH_NAME);
     return response;
   }
 }

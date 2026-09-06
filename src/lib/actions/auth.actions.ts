@@ -5,7 +5,7 @@ import * as passwordUtils from "@/lib/credentials/hash";
 import * as authModels from "@/models/auth.models";
 import * as JWTHelpers from "@/lib/session";
 import { cookies, headers } from "next/headers";
-import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
+import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_APP_ACCESS_NAME, JWT_APP_REFRESH_NAME, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
 import z from "zod";
 import { ActionState, UserRole } from "@/db/types";
 import { redirect } from "next/navigation";
@@ -34,7 +34,7 @@ export type SignUpState = ActionState<SignUpFormFields>;
 
 export const handleSignUp = async (prevState: SignUpState, data?: FormData): Promise<SignUpState> => {
   const cookieStore = await cookies();
-  const isSessionCookieSet = cookieStore.get("session")?.value;
+  const isSessionCookieSet = cookieStore.get(JWT_APP_ACCESS_NAME)?.value;
   if (!!isSessionCookieSet) {
     redirect("/");
   }
@@ -99,13 +99,13 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
 
     cookieStore
       .set({
-        name: "session",
+        name: JWT_APP_ACCESS_NAME,
         value: appAccessToken,
         httpOnly: true,
         sameSite: true,
       })
       .set({
-        name: "refresh",
+        name: JWT_APP_REFRESH_NAME,
         value: appRefreshToken,
         httpOnly: true,
         sameSite: true,
@@ -133,7 +133,7 @@ export type SignInState = ActionState<SignInFields>;
 export const handleSignIn = async (_prevState: SignInState, data: FormData): Promise<SignInState> => {
   // Duplication
   const cookieStore = await cookies();
-  const isSessionCookieSet = cookieStore.get("session")?.value;
+  const isSessionCookieSet = cookieStore.get(JWT_APP_ACCESS_NAME)?.value;
   if (!!isSessionCookieSet) {
     redirect("/");
   }
@@ -197,13 +197,13 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
 
     cookieStore
       .set({
-        name: "session",
+        name: JWT_APP_ACCESS_NAME,
         value: appAccessToken,
         httpOnly: true,
         sameSite: true,
       })
       .set({
-        name: "refresh",
+        name: JWT_APP_REFRESH_NAME,
         value: appRefreshToken,
         httpOnly: true,
         sameSite: true,
@@ -224,7 +224,7 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
 export const handleSignOut = async () => {
   const headerList = await headers();
   const cookieStore = await cookies();
-  cookieStore.delete("session").delete("refresh");
+  cookieStore.delete(JWT_APP_ACCESS_NAME).delete(JWT_APP_REFRESH_NAME);
   const currentPath = headerList.get("x-current-path");
   revalidatePath(currentPath || "/");
 };

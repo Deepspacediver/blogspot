@@ -6,7 +6,10 @@ import {
   EXPIRATION_15_MINUTES,
   EXPIRATION_7_DAYS,
   JWT_ACCESS_SIGNING_KEY,
+  JWT_API_ACCESS_NAME,
   JWT_API_ACCESS_SIGNING_KEY,
+  JWT_APP_ACCESS_NAME,
+  JWT_APP_REFRESH_NAME,
   JWT_REFRESH_SIGNING_KEY,
 } from "@/constants/jwt";
 import * as userQueries from "@/db/queries/user.queries";
@@ -22,29 +25,29 @@ const getSetCookieHeader = (setCookieHeader: string) =>
 export const getAppSessionData = async () => {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session")?.value;
+    const sessionCookie = cookieStore.get(JWT_APP_ACCESS_NAME)?.value;
     const headersList = await headers();
     // getSetCookie method always return empty array
     const headerCookie = headersList.get("set-cookie");
     const setCookieMap = getSetCookieHeader(headerCookie || "");
 
-    const appSessionCookie = sessionCookie || setCookieMap?.["session"];
+    const appSessionCookie = sessionCookie || setCookieMap?.[JWT_APP_ACCESS_NAME];
 
     const decryptedToken = appSessionCookie
       ? await decryptJWT({
-          cookie: appSessionCookie,
-          signingSecret: JWT_ACCESS_SIGNING_KEY,
-        })
+        cookie: appSessionCookie,
+        signingSecret: JWT_ACCESS_SIGNING_KEY,
+      })
       : undefined;
     const payload = decryptedToken?.payload;
     return {
       user: payload
         ? {
-            username: payload?.username,
-            email: payload.email,
-            role: payload.role,
-            userId: payload.userId,
-          }
+          username: payload?.username,
+          email: payload.email,
+          role: payload.role,
+          userId: payload.userId,
+        }
         : undefined,
       error: decryptedToken?.error,
       details: decryptedToken?.details,
@@ -64,13 +67,13 @@ export const getAppSessionData = async () => {
 
 export const validateAppToken = async () => {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("session")?.value;
+  const sessionCookie = cookieStore.get(JWT_APP_ACCESS_NAME)?.value;
 
   const decryptedAccessToken = sessionCookie
     ? await decryptJWT({
-        cookie: sessionCookie,
-        signingSecret: JWT_ACCESS_SIGNING_KEY,
-      })
+      cookie: sessionCookie,
+      signingSecret: JWT_ACCESS_SIGNING_KEY,
+    })
     : undefined;
 
   if (decryptedAccessToken?.payload) {
@@ -80,13 +83,13 @@ export const validateAppToken = async () => {
   const isExpiredAccessError =
     !!decryptedAccessToken && !!decryptedAccessToken.error && decryptedAccessToken.error instanceof JoseErrors.JWTExpired;
   if (!isExpiredAccessError) {
-    cookieStore.delete("sesion").delete("refresh");
+    cookieStore.delete(JWT_APP_ACCESS_NAME).delete(JWT_APP_REFRESH_NAME);
     return { payload: null, error: null, details: "" };
   }
 
-  const refreshCookie = cookieStore.get("refresh")?.value;
+  const refreshCookie = cookieStore.get(JWT_APP_REFRESH_NAME)?.value;
   if (!refreshCookie) {
-    cookieStore.delete("sesion").delete("refresh");
+    cookieStore.delete(JWT_APP_ACCESS_NAME).delete(JWT_APP_REFRESH_NAME);
     return { payload: null, error: new CustomError("Missing refresh token", 401), details: "Missing refresh token" };
   }
 
@@ -96,7 +99,7 @@ export const validateAppToken = async () => {
   });
 
   if (!!decryptedRefreshToken.error || !decryptedRefreshToken.payload) {
-    cookieStore.delete("sesion").delete("refresh");
+    cookieStore.delete(JWT_APP_ACCESS_NAME).delete(JWT_APP_REFRESH_NAME);
     return {
       payload: null,
       error: decryptedRefreshToken.error || new CustomError("Invalid refresh token", 401),
@@ -130,13 +133,13 @@ export const validateAppToken = async () => {
     ]);
     cookieStore
       .set({
-        name: "session",
+        name: JWT_APP_ACCESS_NAME,
         value: newSessionToken,
         httpOnly: true,
         sameSite: true,
       })
       .set({
-        name: "refresh",
+        name: JWT_APP_REFRESH_NAME,
         value: newRefreshToken,
         httpOnly: true,
         sameSite: true,
@@ -144,7 +147,7 @@ export const validateAppToken = async () => {
 
     return { payload, error: null, details: "null" };
   } catch (error) {
-    cookieStore.delete("sesion").delete("refresh");
+    cookieStore.delete(JWT_APP_ACCESS_NAME).delete(JWT_APP_REFRESH_NAME);
     return {
       payload: null,
       error,
@@ -155,13 +158,13 @@ export const validateAppToken = async () => {
 
 export const validateAPIToken = async () => {
   const cookieStore = await cookies();
-  const accessCookie = cookieStore.get("access")?.value;
+  const accessCookie = cookieStore.get(JWT_API_ACCESS_NAME)?.value;
 
   const decryptedAccessToken = accessCookie
     ? await decryptJWT({
-        cookie: accessCookie,
-        signingSecret: JWT_API_ACCESS_SIGNING_KEY,
-      })
+      cookie: accessCookie,
+      signingSecret: JWT_API_ACCESS_SIGNING_KEY,
+    })
     : undefined;
 
   if (!decryptedAccessToken?.payload || decryptedAccessToken.error) {

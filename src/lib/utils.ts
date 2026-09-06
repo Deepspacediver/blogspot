@@ -1,3 +1,4 @@
+import { JWT_API_ACCESS_NAME, JWT_API_REFRESH_NAME, JWT_APP_ACCESS_NAME, JWT_APP_REFRESH_NAME } from "@/constants/jwt";
 import { clsx, type ClassValue } from "clsx";
 import { format, formatDistanceToNowStrict, isAfter } from "date-fns";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
@@ -47,7 +48,10 @@ type ClearCookiesProps = {
 };
 
 export const clearJWTCookies = ({ cookieStore, isAPI = false }: ClearCookiesProps) => {
-  cookieStore.delete("refresh").delete(isAPI ? "access" : "session");
+  const refreshTokenNameToClear = isAPI ? JWT_API_REFRESH_NAME : JWT_APP_REFRESH_NAME;
+  const accessTokenNameToClear = isAPI ? JWT_API_ACCESS_NAME : JWT_APP_ACCESS_NAME;
+
+  cookieStore.delete(refreshTokenNameToClear).delete(accessTokenNameToClear);
 };
 
 type APIResponseProps<T> = {

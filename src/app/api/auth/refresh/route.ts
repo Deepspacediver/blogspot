@@ -1,4 +1,4 @@
-import { EXPIRATION_7_DAYS, JWT_API_ACCESS_SIGNING_KEY, JWT_API_REFRESH_SIGNING_KEY } from "@/constants/jwt";
+import { EXPIRATION_7_DAYS, JWT_API_ACCESS_NAME, JWT_API_ACCESS_SIGNING_KEY, JWT_API_REFRESH_NAME, JWT_API_REFRESH_SIGNING_KEY } from "@/constants/jwt";
 import * as userQueries from "@/db/queries/user.queries";
 import * as JWTHelpers from "@/lib/session";
 import { JWTPayload } from "@/lib/session";
@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 export async function POST() {
   const cookieStore = await cookies();
 
-  const refreshCookie = cookieStore.get("refresh")?.value;
+  const refreshCookie = cookieStore.get(JWT_API_REFRESH_NAME)?.value;
 
   if (!refreshCookie) {
     clearJWTCookies({ cookieStore, isAPI: true });
@@ -47,13 +47,13 @@ export async function POST() {
 
     cookieStore
       .set({
-        name: "access",
+        name: JWT_API_ACCESS_NAME,
         value: newAccessJWT,
         httpOnly: true,
         secure: true,
       })
       .set({
-        name: "refresh",
+        name: JWT_API_REFRESH_NAME,
         value: newRefreshJWT,
         httpOnly: true,
         secure: true,

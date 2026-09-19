@@ -1,0 +1,28 @@
+services:
+  blogspot-db:
+    image: postgres:16-alpine
+    container_name: blogspot-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - blogspot-db-data:/var/lib/postgresql/data
+    networks:
+      - blogspot-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+      start_interval: 5s
+
+networks:
+  blogspot-net:
+    external: true
+
+volumes:
+  blogspot-db-data:
+    external: true

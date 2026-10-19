@@ -1,0 +1,22 @@
+ARG NODE_VERSION=24.14.0-slim
+
+FROM node:${NODE_VERSION} AS dev
+
+WORKDIR /app  
+
+RUN chown node:node /app
+RUN mkdir -p /app/.next && chown node:node /app/.next
+
+USER node 
+
+COPY --chown=node:node ./package.json ./package-lock.json ./
+
+RUN npm ci
+
+COPY --chown=node:node . .
+
+ENV HOSTNAME="0.0.0.0"
+
+EXPOSE 3005
+
+CMD ["npm", "run", "dev"]

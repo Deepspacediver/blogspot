@@ -1,25 +1,26 @@
 services:
   blogspot:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../
+      dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - "3005:3005"
     env_file:
-      - ./.env
+      - ../../.env
     networks:
       - blogspot-net
+    volumes:
+      - ../../:/app/
+      - /app/node_modules
+      - /app/.next
   blogspot-db:
     image: postgres:16-alpine
-    container_name: blogspot-db
     restart: unless-stopped
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+    env_file:
+      - ../../.env
     volumes:
-      - blogspot-db-data:/var/lib/postgresql/data
-      - ./src/db/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - blogspot-db-dev-data:/var/lib/postgresql/data
+      - ../../src/db/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - blogspot-net
     healthcheck:
@@ -37,14 +38,15 @@ services:
     depends_on:
       blogspot-db:
         condition: service_healthy
+    env_file:
+      - ../../.env
     command: >
-      sh -c "psql -h blogspot-db -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'SELECT 1;' && echo 'CONNECTION SUCCESSFUL'"
-    environment:
-      - PGPASSWORD=${POSTGRES_PASSWORD}
+      sh -c "PGPASSWORD=\"$${POSTGRES_PASSWORD}\" psql --no-password -h blogspot-db -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c 'SELECT 1;' && echo 'CONNECTION SUCCESSFUL'"
 
 networks:
   blogspot-net:
     external: true
 
 volumes:
-  blogspot-db-data:
+  blogspot-db-dev-data:
+    external: true

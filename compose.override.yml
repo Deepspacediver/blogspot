@@ -1,0 +1,6 @@
+services:
+  blogspot:
+    build:
+      dockerfile: Dockerfile.local
+    ports:
+      - "3005:3005"

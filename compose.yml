@@ -1,0 +1,53 @@
+services:
+  blogspot:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3005"
+    env_file:
+      - .env
+    networks:
+      - blogspot-net
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+  blogspot-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - blogspot-db-data:/var/lib/postgresql/data
+      - ./src/db/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - blogspot-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+      start_interval: 5s
+  db-checker:
+    image: postgres:16-alpine
+    restart: "no"
+    networks:
+      - blogspot-net
+    depends_on:
+      blogspot-db:
+        condition: service_healthy
+    command: >
+      sh -c "psql -h blogspot-db -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'SELECT 1;' && echo 'CONNECTION SUCCESSFUL'"
+    environment:
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+
+networks:
+  blogspot-net:
+    external: true
+
+volumes:
+  blogspot-db-data:

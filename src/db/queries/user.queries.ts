@@ -58,7 +58,7 @@ export const updateUser = async ({ id, ...rest }: UpdateUserProps) => {
       WHERE id = $${endIndex + 1}
       RETURNING id, role, username, email;
   `,
-    [columnValues, id],
+    [...columnValues, id],
   );
 
   return user?.rows?.[0];

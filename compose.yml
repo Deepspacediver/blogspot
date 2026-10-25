@@ -51,3 +51,4 @@ networks:
 
 volumes:
   blogspot-db-data:
+    external: true

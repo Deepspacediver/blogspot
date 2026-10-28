@@ -24,3 +24,10 @@ jobs:
         run: npm run typecheck
       - name: "Linter"
         run: npm run lint
+      - uses: docker/setup-buildx-action@v4
+      - name: "Build OCI Image"
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

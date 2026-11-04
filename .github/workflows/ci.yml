@@ -49,4 +49,16 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ github.event_name != 'pull_request' }}
+          push: false
+          load: true
+      - name: "Run vulnerability scan"
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL"
+          ignore-unfixed: true
+      - name: "Push Image to registry"
+        if: github.event_name != 'pull_request'
+        run: docker push ${{ steps.meta.outputs.tags }}

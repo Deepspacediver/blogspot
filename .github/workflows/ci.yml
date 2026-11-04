@@ -52,7 +52,7 @@ jobs:
           push: false
           load: true
       - name: "Run vulnerability scan"
-        uses: aquasecurity/trivy-action@v0.76.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.meta.outputs.tags }}
           format: "table"

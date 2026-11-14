@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: process.env.ADMIN_DASHBOARD_URL!,
+            value: process.env.ADMIN_DASHBOARD_URL || "",
           },
           {
             key: "Access-Control-Allow-Credentials",

@@ -5,12 +5,12 @@ import { cookies, headers } from "next/headers";
 import {
   EXPIRATION_15_MINUTES,
   EXPIRATION_7_DAYS,
-  JWT_ACCESS_SIGNING_KEY,
+  getJwtAccessSigningKey,
+  getJwtApiAccessSigningKey,
+  getJwtRefreshSigningKey,
   JWT_API_ACCESS_NAME,
-  JWT_API_ACCESS_SIGNING_KEY,
   JWT_APP_ACCESS_NAME,
   JWT_APP_REFRESH_NAME,
-  JWT_REFRESH_SIGNING_KEY,
 } from "@/constants/jwt";
 import * as userQueries from "@/db/queries/user.queries";
 import { errors as JoseErrors } from "jose";
@@ -36,7 +36,7 @@ export const getAppSessionData = async () => {
     const decryptedToken = appSessionCookie
       ? await decryptJWT({
         cookie: appSessionCookie,
-        signingSecret: JWT_ACCESS_SIGNING_KEY,
+        signingSecret: getJwtAccessSigningKey(),
       })
       : undefined;
     const payload = decryptedToken?.payload;
@@ -72,7 +72,7 @@ export const validateAppToken = async () => {
   const decryptedAccessToken = sessionCookie
     ? await decryptJWT({
       cookie: sessionCookie,
-      signingSecret: JWT_ACCESS_SIGNING_KEY,
+      signingSecret: getJwtAccessSigningKey(),
     })
     : undefined;
 
@@ -95,7 +95,7 @@ export const validateAppToken = async () => {
 
   const decryptedRefreshToken = await decryptJWT({
     cookie: refreshCookie,
-    signingSecret: JWT_REFRESH_SIGNING_KEY,
+    signingSecret: getJwtRefreshSigningKey(),
   });
 
   if (!!decryptedRefreshToken.error || !decryptedRefreshToken.payload) {
@@ -122,12 +122,12 @@ export const validateAppToken = async () => {
     const [newSessionToken, newRefreshToken] = await Promise.all([
       encryptJWT({
         payload,
-        signingSecret: JWT_ACCESS_SIGNING_KEY,
+        signingSecret: getJwtAccessSigningKey(),
         expiration: EXPIRATION_15_MINUTES,
       }),
       encryptJWT({
         payload,
-        signingSecret: JWT_REFRESH_SIGNING_KEY,
+        signingSecret: getJwtRefreshSigningKey(),
         expiration: EXPIRATION_7_DAYS,
       }),
     ]);
@@ -163,7 +163,7 @@ export const validateAPIToken = async () => {
   const decryptedAccessToken = accessCookie
     ? await decryptJWT({
       cookie: accessCookie,
-      signingSecret: JWT_API_ACCESS_SIGNING_KEY,
+      signingSecret: getJwtApiAccessSigningKey(),
     })
     : undefined;
 

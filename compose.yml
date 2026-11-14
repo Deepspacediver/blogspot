@@ -4,15 +4,11 @@ services:
       context: ./
       dockerfile: Dockerfile
     ports:
-      - "3005:3005"
+      - "3000:3000"
     env_file:
       - .env
     networks:
       - blogspot-net
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
   blogspot-db:
     image: postgres:16-alpine
     restart: unless-stopped

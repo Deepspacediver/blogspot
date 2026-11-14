@@ -5,7 +5,14 @@ import * as passwordUtils from "@/lib/credentials/hash";
 import * as authModels from "@/models/auth.models";
 import * as JWTHelpers from "@/lib/session";
 import { cookies, headers } from "next/headers";
-import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_APP_ACCESS_NAME, JWT_APP_REFRESH_NAME, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
+import {
+  EXPIRATION_15_MINUTES,
+  EXPIRATION_7_DAYS,
+  getJwtAccessSigningKey,
+  getJwtRefreshSigningKey,
+  JWT_APP_ACCESS_NAME,
+  JWT_APP_REFRESH_NAME,
+} from "@/constants/jwt";
 import z from "zod";
 import { ActionState, UserRole } from "@/db/types";
 import { redirect } from "next/navigation";
@@ -87,12 +94,12 @@ export const handleSignUp = async (prevState: SignUpState, data?: FormData): Pro
     const [appAccessToken, appRefreshToken] = await Promise.all([
       JWTHelpers.encryptJWT({
         payload,
-        signingSecret: JWT_ACCESS_SIGNING_KEY,
+        signingSecret: getJwtAccessSigningKey(),
         expiration: EXPIRATION_15_MINUTES,
       }),
       JWTHelpers.encryptJWT({
         payload,
-        signingSecret: JWT_REFRESH_SIGNING_KEY,
+        signingSecret: getJwtRefreshSigningKey(),
         expiration: EXPIRATION_7_DAYS,
       }),
     ]);
@@ -185,12 +192,12 @@ export const handleSignIn = async (_prevState: SignInState, data: FormData): Pro
     const [appAccessToken, appRefreshToken] = await Promise.all([
       JWTHelpers.encryptJWT({
         payload,
-        signingSecret: JWT_ACCESS_SIGNING_KEY,
+        signingSecret: getJwtAccessSigningKey(),
         expiration: EXPIRATION_15_MINUTES,
       }),
       JWTHelpers.encryptJWT({
         payload,
-        signingSecret: JWT_REFRESH_SIGNING_KEY,
+        signingSecret: getJwtRefreshSigningKey(),
         expiration: EXPIRATION_7_DAYS,
       }),
     ]);

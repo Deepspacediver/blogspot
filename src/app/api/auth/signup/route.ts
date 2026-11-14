@@ -1,10 +1,10 @@
 import {
   EXPIRATION_15_MINUTES,
   EXPIRATION_7_DAYS,
+  getJwtApiAccessSigningKey,
+  getJwtApiRefreshSigningKey,
   JWT_API_ACCESS_NAME,
-  JWT_API_ACCESS_SIGNING_KEY,
   JWT_API_REFRESH_NAME,
-  JWT_API_REFRESH_SIGNING_KEY,
 } from "@/constants/jwt";
 import * as userQueries from "@/db/queries/user.queries";
 import { UserRole } from "@/db/types";
@@ -76,12 +76,12 @@ export async function POST(req: NextRequest) {
   const [accessToken, refreshToken] = await Promise.all([
     JWTHelpers.encryptJWT({
       payload,
-      signingSecret: JWT_API_ACCESS_SIGNING_KEY,
+      signingSecret: getJwtApiAccessSigningKey(),
       expiration: EXPIRATION_15_MINUTES,
     }),
     JWTHelpers.encryptJWT({
       payload,
-      signingSecret: JWT_API_REFRESH_SIGNING_KEY,
+      signingSecret: getJwtApiRefreshSigningKey(),
       expiration: EXPIRATION_7_DAYS,
     }),
   ]);

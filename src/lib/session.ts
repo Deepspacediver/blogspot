@@ -1,6 +1,6 @@
 "use server";
 
-import { EXPIRATION_15_MINUTES, JWT_ACCESS_SIGNING_KEY } from "@/constants/jwt";
+import { EXPIRATION_15_MINUTES, getJwtAccessSigningKey } from "@/constants/jwt";
 import { UserRole } from "@/db/types";
 import * as jose from "jose";
 import { validateAPIToken, validateAppToken } from "./auth-dal";
@@ -29,15 +29,16 @@ type EncryptJWTProps = {
 
 export const encryptJWT = async ({
   payload,
-  signingSecret = JWT_ACCESS_SIGNING_KEY,
+  signingSecret,
   expiration = EXPIRATION_15_MINUTES,
 }: EncryptJWTProps) => {
+  const secret = signingSecret ?? getJwtAccessSigningKey();
   const authCookie = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: SIGN_ALG })
     .setIssuedAt()
     .setIssuer(ISSUER)
     .setExpirationTime(expiration)
-    .sign(signingSecret);
+    .sign(secret);
 
   return authCookie;
 };
@@ -47,9 +48,10 @@ type DecryptJWTProps = {
   signingSecret?: Uint8Array<ArrayBufferLike>;
 };
 
-export const decryptJWT = async ({ cookie, signingSecret = JWT_ACCESS_SIGNING_KEY }: DecryptJWTProps) => {
+export const decryptJWT = async ({ cookie, signingSecret }: DecryptJWTProps) => {
   try {
-    const decryptedToken = await jose.jwtVerify<JWT>(cookie, signingSecret, {
+    const secret = signingSecret ?? getJwtAccessSigningKey();
+    const decryptedToken = await jose.jwtVerify<JWT>(cookie, secret, {
       issuer: ISSUER,
     });
 

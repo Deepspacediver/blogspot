@@ -1,10 +1,16 @@
-import { EXPIRATION_15_MINUTES, EXPIRATION_7_DAYS, JWT_ACCESS_SIGNING_KEY, JWT_REFRESH_SIGNING_KEY } from "@/constants/jwt";
+import {
+  EXPIRATION_15_MINUTES,
+  EXPIRATION_7_DAYS,
+  getJwtAccessSigningKey,
+  getJwtRefreshSigningKey,
+  JWT_APP_ACCESS_NAME,
+  JWT_APP_REFRESH_NAME,
+} from "@/constants/jwt";
 import { errors as JoseErrors, JWTPayload } from "jose";
 import { decryptJWT, encryptJWT } from "@/lib/session";
 import { NextResponse, type NextRequest } from "next/server";
 import { findUserByEmail } from "@/db/queries/user.queries";
 import { CustomError } from "@/errors/custom-error";
-import { JWT_APP_ACCESS_NAME, JWT_APP_REFRESH_NAME } from "@/constants/jwt";
 
 export async function middleware(request: NextRequest) {
   const headers = new Headers();
@@ -16,7 +22,7 @@ export async function middleware(request: NextRequest) {
   const decryptedAccessToken = sessionCookie
     ? await decryptJWT({
       cookie: sessionCookie,
-      signingSecret: JWT_ACCESS_SIGNING_KEY,
+      signingSecret: getJwtAccessSigningKey(),
     })
     : undefined;
 
@@ -38,7 +44,7 @@ export async function middleware(request: NextRequest) {
   }
   const decryptedRefreshToken = await decryptJWT({
     cookie: refreshCookie,
-    signingSecret: JWT_REFRESH_SIGNING_KEY,
+    signingSecret: getJwtRefreshSigningKey(),
   });
 
   if (!!decryptedRefreshToken.error || !decryptedRefreshToken.payload) {
@@ -61,12 +67,12 @@ export async function middleware(request: NextRequest) {
     const [newSessionToken, newRefreshToken] = await Promise.all([
       encryptJWT({
         payload,
-        signingSecret: JWT_ACCESS_SIGNING_KEY,
+        signingSecret: getJwtAccessSigningKey(),
         expiration: EXPIRATION_15_MINUTES,
       }),
       encryptJWT({
         payload,
-        signingSecret: JWT_REFRESH_SIGNING_KEY,
+        signingSecret: getJwtRefreshSigningKey(),
         expiration: EXPIRATION_7_DAYS,
       }),
     ]);

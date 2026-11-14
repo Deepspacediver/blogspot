@@ -1,4 +1,10 @@
-import { EXPIRATION_7_DAYS, JWT_API_ACCESS_NAME, JWT_API_ACCESS_SIGNING_KEY, JWT_API_REFRESH_NAME, JWT_API_REFRESH_SIGNING_KEY } from "@/constants/jwt";
+import {
+  EXPIRATION_7_DAYS,
+  getJwtApiAccessSigningKey,
+  getJwtApiRefreshSigningKey,
+  JWT_API_ACCESS_NAME,
+  JWT_API_REFRESH_NAME,
+} from "@/constants/jwt";
 import * as userQueries from "@/db/queries/user.queries";
 import * as JWTHelpers from "@/lib/session";
 import { JWTPayload } from "@/lib/session";
@@ -18,7 +24,7 @@ export async function POST() {
   try {
     const { payload } = await JWTHelpers.decryptJWT({
       cookie: refreshCookie,
-      signingSecret: JWT_API_REFRESH_SIGNING_KEY,
+      signingSecret: getJwtApiRefreshSigningKey(),
     });
 
     if (!payload) {
@@ -36,11 +42,11 @@ export async function POST() {
     const [newAccessJWT, newRefreshJWT] = await Promise.all([
       JWTHelpers.encryptJWT({
         payload: newPayload,
-        signingSecret: JWT_API_ACCESS_SIGNING_KEY,
+        signingSecret: getJwtApiAccessSigningKey(),
       }),
       JWTHelpers.encryptJWT({
         payload: newPayload,
-        signingSecret: JWT_API_REFRESH_SIGNING_KEY,
+        signingSecret: getJwtApiRefreshSigningKey(),
         expiration: EXPIRATION_7_DAYS,
       }),
     ]);
